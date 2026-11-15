@@ -4133,8 +4133,8 @@ packages:
     resolution: {integrity: sha512-jBrmx4lYmaC9k/mgPbylxs7kBUxHtD8256up+HjLaDFfXScKJQyil+SWXSvhAtT7XHo+yTVlpB81PGmHP8oLSQ==}
     engines: {node: ^20.0.0 || >=22.0.0}
 
-  tmp@0.2.3:
-    resolution: {integrity: sha512-nZD7m9iCPC5g0pYmcaxogYKggSfLsdxl8of3Q/oIbqCqLLIO9IAF0GWjX1z9NZRHPiXv8Wex4yDCaZsgEw0Y8w==}
+  tmp@0.2.7:
+    resolution: {integrity: sha512-e0votIpp4Uo2AJYSzVHV6xCcawuiez3DzqDAbrTc3YxBkplN6e+dM13ZeIcZnDg/QpSuU2zfZ3rzwY8ukEnaXw==}
     engines: {node: '>=14.14'}
 
   to-fast-properties@2.0.0:
@@ -6977,7 +6977,7 @@ snapshots:
       rimraf: 3.0.2
       socket.io: 4.7.5(supports-color@7.2.0)
       source-map: 0.6.1
-      tmp: 0.2.3
+      tmp: 0.2.7
       ua-parser-js: 0.7.38
       yargs: 16.2.0
     transitivePeerDependencies:
@@ -7977,7 +7977,7 @@ snapshots:
 
   tinypool@2.2.0: {}
 
-  tmp@0.2.3: {}
+  tmp@0.2.7: {}
 
   to-fast-properties@2.0.0: {}
 
