@@ -1,6 +1,6 @@
 import type { WritableSignal } from "@angular/core";
 import type { FormControl } from "@angular/forms";
-import type { LoanDirection } from "./dashboard.model";
+import type { LoanDirection } from "./API_RESPONSES.model";
 
 export interface TemplateLoanForm {
   name: FormControl<string>;
