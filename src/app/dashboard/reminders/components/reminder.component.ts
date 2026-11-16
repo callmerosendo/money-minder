@@ -2,7 +2,12 @@ import { Component, type OnInit, inject, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Title } from "@angular/platform-browser";
 import { NotLoggedComponent, SubmitBttnComponent } from "@app/core";
-import type { EditReminder, NewReminder, Reminder, ReminderRecurrence } from "@app/models";
+import type {
+  CreateReminderPayload,
+  Reminder,
+  ReminderRecurrence,
+  UpdateReminderPayload,
+} from "@app/models";
 import { AlertService, AuthCacheService, FormSubmitService } from "@app/services";
 import { ReminderDeleteComponent } from "./reminder-delete";
 import { ReminderEditComponent } from "./reminder-edit";
@@ -33,9 +38,9 @@ export default class RemindersComponent implements OnInit {
   reminders = this.store.reminders;
   readonly alertService = inject(AlertService);
   readonly recurrenceOptions: ReminderRecurrence[] = ["none", "monthly", "yearly"];
-  formReminder: NewReminder = {
+  formReminder: CreateReminderPayload = {
     title: "",
-    amount: null,
+    amount: undefined,
     dueAt: "",
     recurrence: "none",
   };
@@ -58,7 +63,7 @@ export default class RemindersComponent implements OnInit {
         this.store.addReminder(reminder);
         this.formReminder = {
           title: "",
-          amount: null,
+          amount: undefined,
           dueAt: "",
           recurrence: "none",
         };
@@ -102,8 +107,11 @@ export default class RemindersComponent implements OnInit {
     });
   }
 
-  onSave(editReminder: EditReminder) {
-    this.formSubmit.editReminder(editReminder).subscribe({
+  onSave(editReminder: UpdateReminderPayload) {
+    const reminderId = this.selectedReminder?.id;
+    if (!reminderId) return;
+
+    this.formSubmit.editReminder(reminderId, editReminder).subscribe({
       next: (reminder) => {
         this.alertService.showInfo({ feature: "reminder", action: "update" });
         this.onCloseModal();

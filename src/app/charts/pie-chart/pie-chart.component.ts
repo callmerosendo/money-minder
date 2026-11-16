@@ -1,5 +1,6 @@
 import { type AfterViewChecked, Component, type OnDestroy, input } from "@angular/core";
-import type { TransactionChart } from "@app/models";
+import type { SpecialsCategoryItem } from "@app/models";
+import { moneyToNumber } from "@app/utils";
 import { Chart, registerables } from "chart.js";
 import { createGraphic } from "../utils";
 
@@ -8,7 +9,7 @@ import { createGraphic } from "../utils";
   templateUrl: "./pie-chart.component.html",
 })
 export class PieChartComponent implements AfterViewChecked, OnDestroy {
-  dataTC = input.required<TransactionChart[]>();
+  dataTC = input.required<SpecialsCategoryItem[]>();
   text = input.required<string>();
   chartId = input.required<string>();
   private chartInstance: Chart<"pie", number[], string> | undefined;
@@ -34,8 +35,8 @@ export class PieChartComponent implements AfterViewChecked, OnDestroy {
     const ctx = canvas.getContext("2d");
 
     if (ctx && this.dataTC()) {
-      const categories = this.dataTC().map((item) => item.category);
-      const totalAmounts = this.dataTC().map((item) => item.total);
+      const categories = this.dataTC().map((item) => item.categoryName);
+      const totalAmounts = this.dataTC().map((item) => moneyToNumber(item.totalAmount));
       this.chartInstance = createGraphic(ctx, categories, totalAmounts, this.text());
     }
   }

@@ -1,13 +1,12 @@
 import { inject, InjectionToken } from "@angular/core";
-import type { CreditCards, Purchases, Transaction } from "@app/models";
+import type { CreditCardAccount, CreditCardPurchasesSummary, Transaction } from "@app/models";
 import { ApiCallsService } from "@app/services";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
-import { withEntities } from "@ngrx/signals/entities";
 import { firstValueFrom } from "rxjs";
 
 type CreditCardsState = {
-  creditCards: CreditCards[];
-  purchases: Purchases[];
+  creditCards: CreditCardAccount[];
+  purchases: CreditCardPurchasesSummary[];
   cardTransactions: Transaction[];
 };
 
@@ -24,7 +23,6 @@ const CREDIT_CARDS_STATE = new InjectionToken<CreditCardsState>("CreditCardsStat
 export const CreditCardsStore = signalStore(
   { providedIn: "root" },
   withState(() => inject(CREDIT_CARDS_STATE)),
-  withEntities<CreditCardsState>(),
   withMethods((store, apiCallsService = inject(ApiCallsService)) => ({
     clearCreditCards(): void {
       patchState(store, {
@@ -51,7 +49,7 @@ export const CreditCardsStore = signalStore(
       patchState(store, { creditCards, purchases, cardTransactions });
     },
 
-    addCreditCard(creditCard: CreditCards): void {
+    addCreditCard(creditCard: CreditCardAccount): void {
       const updatedCreditCards = [...store.creditCards(), creditCard];
       patchState(store, { creditCards: updatedCreditCards });
     },
@@ -73,11 +71,6 @@ export const CreditCardsStore = signalStore(
     async updateCardTransactions(): Promise<void> {
       const cardTransactions = await firstValueFrom(apiCallsService.getAllCardTransactions());
       patchState(store, { cardTransactions });
-    },
-
-    addPurchase(purchase: Purchases): void {
-      const updatedPurchases = [purchase, ...store.purchases()];
-      patchState(store, { purchases: updatedPurchases });
     },
   })),
   withHooks({

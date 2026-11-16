@@ -1,29 +1,32 @@
 import { InjectionToken, inject } from "@angular/core";
-import type { FinancialSummary } from "@app/models";
+import type { MoneyInput, SpecialsFinancialSummaryYearly } from "@app/models";
 import { ApiCallsService } from "@app/services";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
-import { withEntities } from "@ngrx/signals/entities";
 import { firstValueFrom } from "rxjs";
+import { addMoney, subtractMoney } from "@app/utils";
 
 type FinancialSummaryState = {
-  financialSummary: FinancialSummary;
+  financialSummary: SpecialsFinancialSummaryYearly;
 };
 
-const initialState: FinancialSummaryState = {
+const buildInitialState = (): FinancialSummaryState => ({
   financialSummary: {
-    totalEntries: 0,
-    totalExits: 0,
+    year: new Date().getFullYear(),
+    totalEntries: "0.00",
+    totalExits: "0.00",
+    netBalance: "0.00",
   },
-};
+});
+
+const initialState = buildInitialState();
 
 const FINANCIAL_SUMMARY_STATE = new InjectionToken<FinancialSummaryState>("FinancialSummaryState", {
-  factory: () => initialState,
+  factory: () => buildInitialState(),
 });
 
 export const FinancialSummaryStore = signalStore(
   { providedIn: "root" },
   withState(() => inject(FINANCIAL_SUMMARY_STATE)),
-  withEntities<FinancialSummaryState>(),
   withMethods((store, apiCallsService = inject(ApiCallsService)) => ({
     deleteFinancialSummary(): void {
       patchState(store, { financialSummary: initialState.financialSummary });
@@ -39,11 +42,15 @@ export const FinancialSummaryStore = signalStore(
      * @param entry - The amount to add to the total entries
      * @returns void - No return, updates the store
      */
-    addSummaryEntry(entry: number): void {
+    addSummaryEntry(entry: MoneyInput): void {
+      const current = store.financialSummary();
+      const totalEntries = addMoney(current.totalEntries, entry);
+
       patchState(store, {
         financialSummary: {
-          ...store.financialSummary(),
-          totalEntries: store.financialSummary().totalEntries + entry,
+          ...current,
+          totalEntries,
+          netBalance: subtractMoney(totalEntries, current.totalExits),
         },
       });
     },
@@ -53,11 +60,15 @@ export const FinancialSummaryStore = signalStore(
      * @param exit - The amount to add to the total exits
      * @returns void - No return, updates the store
      */
-    addSummaryExit(exit: number): void {
+    addSummaryExit(exit: MoneyInput): void {
+      const current = store.financialSummary();
+      const totalExits = addMoney(current.totalExits, exit);
+
       patchState(store, {
         financialSummary: {
-          ...store.financialSummary(),
-          totalExits: store.financialSummary().totalExits + exit,
+          ...current,
+          totalExits,
+          netBalance: subtractMoney(current.totalEntries, totalExits),
         },
       });
     },
@@ -69,7 +80,7 @@ export const FinancialSummaryStore = signalStore(
         patchState(store, { financialSummary });
       } catch (error) {
         console.error("Error fetching financial summary:", error);
-        patchState(store, { financialSummary: { totalEntries: 0, totalExits: 0 } });
+        patchState(store, { financialSummary: initialState.financialSummary });
       }
     },
   }),

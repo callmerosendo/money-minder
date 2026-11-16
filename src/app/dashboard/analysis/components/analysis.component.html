@@ -1,5 +1,5 @@
 @let summary = summary$ | async;
-@let balance = ((summary?.totalEntries ?? 0) - (summary?.totalExits ?? 0)).toFixed(2);
+@let balance = net(summary);
 @let monthlyEntries = monthlyEntries$ | async;
 @let monthlyExits = monthlyExits$ | async;
 
@@ -41,13 +41,13 @@
         <div class="flex items-baseline justify-between border-t border-rule py-4">
           <dt class="text-muted">Total de ingresos</dt>
           <dd id="totalIngresos" class="stat-figure text-xl">
-            {{ summary?.totalEntries ?? 0 | currency: "USD" : "symbol" }}
+            {{ summary?.summary.income ?? "0.00" | currency: "USD" : "symbol" }}
           </dd>
         </div>
         <div class="flex items-baseline justify-between border-t border-rule py-4">
           <dt class="text-muted">Total de gastos</dt>
           <dd id="totalEgresos" class="stat-figure text-xl">
-            {{ summary?.totalExits ?? 0 | currency: "USD" : "symbol" }}
+            {{ summary?.summary.expenses ?? "0.00" | currency: "USD" : "symbol" }}
           </dd>
         </div>
         <div class="flex items-baseline justify-between border-y border-rule py-4">

@@ -1,11 +1,11 @@
 import { InjectionToken, inject } from "@angular/core";
-import type { ApiAccount } from "@app/models";
+import type { Account } from "@app/models";
 import { ApiCallsService } from "@app/services";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
 import { firstValueFrom } from "rxjs";
 
 type AccountsState = {
-  accounts: ApiAccount[];
+  accounts: Account[];
 };
 
 const initialState: AccountsState = {
@@ -38,11 +38,11 @@ export const AccountsStore = signalStore(
       patchState(store, { accounts });
     },
 
-    addAccount(account: ApiAccount): void {
+    addAccount(account: Account): void {
       patchState(store, { accounts: [...store.accounts(), account] });
     },
 
-    editAccount(account: ApiAccount): void {
+    editAccount(account: Account): void {
       patchState(store, {
         accounts: store
           .accounts()

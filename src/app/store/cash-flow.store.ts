@@ -1,8 +1,8 @@
 import { InjectionToken, inject } from "@angular/core";
-import type { CashFLow } from "@app/models";
+import type { LegacyCashFlowItem, MoneyInput } from "@app/models";
 import { ApiCallsService } from "@app/services";
+import { addMoney, subtractMoney } from "@app/utils";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
-import { withEntities } from "@ngrx/signals/entities";
 import { firstValueFrom } from "rxjs";
 import {
   addNewTransaction,
@@ -12,7 +12,7 @@ import {
 } from "./cash-flow.utils";
 
 type CashFlowState = {
-  cashFlow: CashFLow[];
+  cashFlow: LegacyCashFlowItem[];
 };
 
 const initialState: CashFlowState = {
@@ -26,7 +26,6 @@ const CASH_FLOW_STATE = new InjectionToken<CashFlowState>("CashFlowState", {
 export const CashFlowStore = signalStore(
   { providedIn: "root" },
   withState(() => inject(CASH_FLOW_STATE)),
-  withEntities<CashFlowState>(),
   withMethods((store, apiCallsService = inject(ApiCallsService)) => ({
     clearCashFlow(): void {
       patchState(store, { cashFlow: initialState.cashFlow });
@@ -37,7 +36,7 @@ export const CashFlowStore = signalStore(
       patchState(store, { cashFlow });
     },
 
-    addEntryTransaction(month: string, amount: number): void {
+    addEntryTransaction(month: string, amount: MoneyInput): void {
       if (!isValidMonth(month)) {
         throw new Error("Invalid month format. Month should be a string in MM format.");
       }
@@ -49,20 +48,23 @@ export const CashFlowStore = signalStore(
         const existingTransaction = cashFlow[existingTransactionIndex];
         updateExistingTransaction(cashFlow, existingTransactionIndex, {
           ...existingTransaction,
-          total_ingresos: existingTransaction.total_ingresos + amount,
+          total_ingresos: addMoney(existingTransaction.total_ingresos, amount),
+          balance: addMoney(existingTransaction.balance, amount),
         });
       } else {
         addNewTransaction(cashFlow, {
           month,
-          total_ingresos: amount,
-          total_egresos: 0,
+          total_ingresos: addMoney(amount),
+          total_egresos: "0.00",
+          total_fees: "0.00",
+          balance: addMoney(amount),
         });
       }
 
       patchState(store, { cashFlow });
     },
 
-    addExitTransaction(month: string, amount: number): void {
+    addExitTransaction(month: string, amount: MoneyInput): void {
       if (!isValidMonth(month)) {
         throw new Error("Invalid month format. Month should be a string in MM format.");
       }
@@ -74,13 +76,16 @@ export const CashFlowStore = signalStore(
         const existingTransaction = cashFlow[existingTransactionIndex];
         updateExistingTransaction(cashFlow, existingTransactionIndex, {
           ...existingTransaction,
-          total_egresos: existingTransaction.total_egresos + amount,
+          total_egresos: addMoney(existingTransaction.total_egresos, amount),
+          balance: subtractMoney(existingTransaction.balance, amount),
         });
       } else {
         addNewTransaction(cashFlow, {
           month,
-          total_ingresos: 0,
-          total_egresos: amount,
+          total_ingresos: "0.00",
+          total_egresos: addMoney(amount),
+          total_fees: "0.00",
+          balance: subtractMoney("0.00", amount),
         });
       }
 

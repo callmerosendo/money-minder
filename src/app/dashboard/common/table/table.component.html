@@ -12,17 +12,19 @@
       </tr>
     </thead>
     <tbody>
-      @for (lastData of dataTransactions(); track $index) {
+      @for (lastData of dataTransactions(); track lastData.id) {
         <tr>
           <th scope="row" class="num px-2 py-3 text-left font-normal whitespace-nowrap">
             {{ lastData.amount | currency: "USD" : "symbol" }}
           </th>
-          <td class="px-2 py-3">{{ lastData.category }}</td>
+          <td class="px-2 py-3">{{ lastData.category?.name || "Sin categoría" }}</td>
           <td class="px-2 py-3">{{ lastData.description }}</td>
-          <td class="num px-2 py-3 whitespace-nowrap">{{ lastData.date | date: "d/MM/y" }}</td>
+          <td class="num px-2 py-3 whitespace-nowrap">
+            {{ lastData.occurredAt | date: "d/MM/y" }}
+          </td>
           @if (type() === "exits") {
             <td class="px-2 py-3">
-              @if (lastData.isCredit) {
+              @if (lastData.affectsLiability) {
                 Tarjeta
               } @else {
                 Efectivo

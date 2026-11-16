@@ -1,5 +1,5 @@
 import { CommonModule, CurrencyPipe, DatePipe } from "@angular/common";
-import { Component, type OnInit, type Signal, inject, input } from "@angular/core";
+import { Component, computed, inject, input } from "@angular/core";
 import type { Transaction } from "@app/models";
 import { TransactionsStore } from "@app/store";
 
@@ -8,18 +8,13 @@ import { TransactionsStore } from "@app/store";
   templateUrl: "./table.component.html",
   imports: [CommonModule, DatePipe, CurrencyPipe],
 })
-export class TableComponent implements OnInit {
+export class TableComponent {
   type = input.required<"entries" | "exits">();
 
   readonly store = inject(TransactionsStore);
 
-  dataTransactions!: Signal<Transaction[]>;
-
-  ngOnInit(): void {
-    this.dataTransactions = this.getDataTransactions();
-  }
-
-  private getDataTransactions() {
-    return this.type() === "entries" ? this.store.entries : this.store.exits;
-  }
+  readonly dataTransactions = computed<Transaction[]>(() => {
+    const wanted = this.type() === "entries" ? "income" : "expense";
+    return this.store.transactions().filter((transaction) => transaction.type === wanted);
+  });
 }

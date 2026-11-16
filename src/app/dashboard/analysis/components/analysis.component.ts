@@ -4,8 +4,9 @@ import { Title } from "@angular/platform-browser";
 
 import { PieChartComponent } from "@app/charts";
 import { NotLoggedComponent } from "@app/core";
-import type { Summary, TransactionChart } from "@app/models";
+import type { MonthlyReportResponse, SpecialsCategoryItem } from "@app/models";
 import { ApiCallsService, AuthCacheService } from "@app/services";
+import { subtractMoney } from "@app/utils";
 import type { Observable } from "rxjs";
 
 @Component({
@@ -23,9 +24,9 @@ export default class AnalysisComponent implements OnInit {
   currentMonthNumber = new Date().getMonth() + 1;
   currentYear = new Date().getFullYear();
   currentDate = new Date().toISOString().substring(0, 7);
-  summary$!: Observable<Summary>;
-  monthlyEntries$!: Observable<TransactionChart[]>;
-  monthlyExits$!: Observable<TransactionChart[]>;
+  summary$!: Observable<MonthlyReportResponse>;
+  monthlyEntries$!: Observable<SpecialsCategoryItem[]>;
+  monthlyExits$!: Observable<SpecialsCategoryItem[]>;
 
   constructor() {
     this.titleService = inject(Title);
@@ -50,6 +51,12 @@ export default class AnalysisComponent implements OnInit {
     });
 
     this.getData();
+  }
+
+  /** Income minus expenses for the reported month, as a money string. */
+  net(summary: MonthlyReportResponse | null | undefined): string {
+    if (!summary) return "0.00";
+    return subtractMoney(summary.summary.income, summary.summary.expenses);
   }
 
   private getData() {

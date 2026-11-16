@@ -3,6 +3,7 @@ export * from "./financial-summary.store";
 export * from "./transactions.store";
 export * from "./cash-flow.store";
 export * from "./categories.store";
+export * from "./transaction-categories.store";
 export * from "./savings.store";
 export * from "./reminders.store";
 export * from "./credit-cards.store";

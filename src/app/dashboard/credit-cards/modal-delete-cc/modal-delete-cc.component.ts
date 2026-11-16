@@ -1,12 +1,12 @@
 import { Component, HostListener, input, output } from "@angular/core";
-import type { CreditCards } from "@app/models";
+import type { CreditCardAccount } from "@app/models";
 
 @Component({
   selector: "app-modal-delete-cc",
   templateUrl: "./modal-delete-cc.component.html",
 })
 export class ModalDeleteCcComponent {
-  creditCard = input.required<CreditCards>();
+  creditCard = input.required<CreditCardAccount>();
   delete = output<string>();
   close = output<void>();
 

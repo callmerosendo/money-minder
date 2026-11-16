@@ -1,20 +1,21 @@
 import { InjectionToken, inject } from "@angular/core";
-import type { RecentTransactions, Transaction } from "@app/models";
+import type { SpecialsRecentTransactionItem, Transaction } from "@app/models";
 import { ApiCallsService } from "@app/services";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
-import { withEntities } from "@ngrx/signals/entities";
 import { firstValueFrom } from "rxjs";
 
+/** Cap kept per list so a long-running session never grows unbounded. */
+const MAX_TRANSACTIONS = 30;
+const MAX_RECENT = 8;
+
 type TransactionState = {
-  recentTransactions: RecentTransactions[];
-  entries: Transaction[];
-  exits: Transaction[];
+  transactions: Transaction[];
+  recentTransactions: SpecialsRecentTransactionItem[];
 };
 
 const initialState: TransactionState = {
+  transactions: [],
   recentTransactions: [],
-  entries: [],
-  exits: [],
 };
 
 const TRANSACTION_STATE = new InjectionToken<TransactionState>("TransactionState", {
@@ -24,17 +25,7 @@ const TRANSACTION_STATE = new InjectionToken<TransactionState>("TransactionState
 export const TransactionsStore = signalStore(
   { providedIn: "root" },
   withState(() => inject(TRANSACTION_STATE)),
-  withEntities<TransactionState>(),
   withMethods((store, apiCallsService = inject(ApiCallsService)) => ({
-    deleteRecentTransactions(): void {
-      patchState(store, { recentTransactions: initialState.recentTransactions });
-    },
-
-    async updateRecentTransactions(): Promise<void> {
-      const recentTransactions = await firstValueFrom(apiCallsService.getRecentTransactions());
-      patchState(store, { recentTransactions });
-    },
-
     /**
      * Reloads the dashboard lists after a ledger mutation.
      */
@@ -44,44 +35,46 @@ export const TransactionsStore = signalStore(
         firstValueFrom(apiCallsService.getLastEntries()),
         firstValueFrom(apiCallsService.getLastExits()),
       ]);
-      patchState(store, { recentTransactions, entries, exits });
+
+      patchState(store, {
+        recentTransactions,
+        transactions: [...entries, ...exits].slice(0, MAX_TRANSACTIONS),
+      });
     },
 
-    addRecentTransaction(transaction: RecentTransactions): void {
+    addRecentTransaction(transaction: SpecialsRecentTransactionItem): void {
       const updatedTransactions = [transaction, ...store.recentTransactions()];
-      if (updatedTransactions.length > 8) {
+      if (updatedTransactions.length > MAX_RECENT) {
         updatedTransactions.pop();
       }
       patchState(store, { recentTransactions: updatedTransactions });
     },
 
-    addEntry(entry: Transaction): void {
-      const updatedEntries = [entry, ...store.entries()];
-      if (updatedEntries.length > 15) {
-        updatedEntries.pop();
+    /** Prepends a freshly stored transaction to the table list. */
+    addTransaction(transaction: Transaction): void {
+      const updatedTransactions = [transaction, ...store.transactions()];
+      if (updatedTransactions.length > MAX_TRANSACTIONS) {
+        updatedTransactions.pop();
       }
-      patchState(store, { entries: updatedEntries });
-    },
-
-    addExit(exit: Transaction): void {
-      const updatedExits = [exit, ...store.exits()];
-      if (updatedExits.length > 15) {
-        updatedExits.pop();
-      }
-      patchState(store, { exits: updatedExits });
+      patchState(store, { transactions: updatedTransactions });
     },
   })),
   withHooks({
     async onInit(store, apiCallsService = inject(ApiCallsService)) {
       try {
-        const recentTransactions = await firstValueFrom(apiCallsService.getRecentTransactions());
-        const entries = await firstValueFrom(apiCallsService.getLastEntries());
-        const exits = await firstValueFrom(apiCallsService.getLastExits());
+        const [recentTransactions, entries, exits] = await Promise.all([
+          firstValueFrom(apiCallsService.getRecentTransactions()),
+          firstValueFrom(apiCallsService.getLastEntries()),
+          firstValueFrom(apiCallsService.getLastExits()),
+        ]);
 
-        patchState(store, { recentTransactions, entries, exits });
+        patchState(store, {
+          recentTransactions,
+          transactions: [...entries, ...exits].slice(0, MAX_TRANSACTIONS),
+        });
       } catch (error) {
         console.error("Error fetching recent transactions:", error);
-        patchState(store, { recentTransactions: [] });
+        patchState(store, initialState);
       }
     },
   }),

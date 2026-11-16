@@ -3,7 +3,7 @@ import { Component, inject, signal } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { Title } from "@angular/platform-browser";
 import { SubmitBttnComponent } from "@app/core";
-import type { CreditCards, Purchases, Transaction } from "@app/models";
+import type { CreditCardAccount, CreditCardPurchasesSummary, Transaction } from "@app/models";
 import { AlertService, FormSubmitService } from "@app/services";
 import { CreditCardsStore } from "@app/store";
 import { extractApiErrorMessage } from "@app/utils";
@@ -39,7 +39,7 @@ export class CreditCardsComponent {
   readonly cardTransactions = this.store.cardTransactions;
   readonly currentMonth = new Date().getMonth() + 1;
   readonly currentYear = new Date().getFullYear();
-  readonly selectedCard = signal<CreditCards | null>(null);
+  readonly selectedCard = signal<CreditCardAccount | null>(null);
   readonly modalDelete = signal(false);
   readonly expandedCard = signal<string | null>(null);
   readonly days = Array.from({ length: 31 }, (_, index) => index + 1);
@@ -72,15 +72,17 @@ export class CreditCardsComponent {
     this.expandedCard.update((expanded) => (expanded === cardId ? null : cardId));
   }
 
-  getPurchasesForCard(cardId: string): Purchases | undefined {
+  getPurchasesForCard(cardId: string): CreditCardPurchasesSummary | undefined {
     return this.purchases().find((purchase) => purchase.id === cardId);
   }
 
   getTransactionsForCard(cardId: string): Transaction[] {
-    return this.cardTransactions().filter((transaction) => transaction.credit_card_id === cardId);
+    return this.cardTransactions().filter((transaction) =>
+      transaction.movements.some((movement) => movement.accountId === cardId),
+    );
   }
 
-  openModalDelete(card: CreditCards): void {
+  openModalDelete(card: CreditCardAccount): void {
     this.selectedCard.set(card);
     this.modalDelete.set(true);
   }

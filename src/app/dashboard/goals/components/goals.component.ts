@@ -3,7 +3,7 @@ import { FormsModule } from "@angular/forms";
 import { Title } from "@angular/platform-browser";
 
 import { NotLoggedComponent, SubmitBttnComponent } from "@app/core";
-import type { EditSaving, NewSaving, Saving } from "@app/models";
+import type { CreateSavingPayload, Saving, UpdateSavingPayload } from "@app/models";
 import { AlertService, AuthCacheService, FormSubmitService } from "@app/services";
 import { GoalModalDeleteComponent } from "./goal-modal-delete";
 import { GoalModalEditComponent } from "./goal-modal-edit";
@@ -23,7 +23,7 @@ import { SavingsCardComponent } from "@app/dashboard/common/savings-card/savings
   ],
 })
 export default class GoalsComponent implements OnInit {
-  formData: NewSaving = {
+  formData: CreateSavingPayload = {
     name: "",
     targetAmount: 0,
     currentAmount: 0,
@@ -89,8 +89,11 @@ export default class GoalsComponent implements OnInit {
     this.selectedSaving = null;
   }
 
-  editSaving(saving: EditSaving) {
-    this.formSubmit.editSaving(saving).subscribe({
+  editSaving(saving: UpdateSavingPayload) {
+    const savingId = this.selectedSaving?.id;
+    if (!savingId) return;
+
+    this.formSubmit.editSaving(savingId, saving).subscribe({
       next: (updated) => {
         this.closeEditModal();
         this.alertService.showInfo({ feature: "saving", action: "update" });

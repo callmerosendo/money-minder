@@ -2,7 +2,7 @@ import { CurrencyPipe } from "@angular/common";
 import { Component, HostListener, type OnInit, inject, input, output } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 
-import type { ApiAccount, CreditCards } from "@app/models";
+import type { Account, CreditCardAccount } from "@app/models";
 import { AlertService } from "@app/services";
 import { isValidNonNegativeMoney, isValidPositiveMoney } from "@app/utils";
 
@@ -26,8 +26,8 @@ export interface CardPaymentPayload {
   templateUrl: "./modal-pay-cc.component.html",
 })
 export class ModalPayCcComponent implements OnInit {
-  creditCard = input.required<CreditCards>();
-  accounts = input.required<ApiAccount[]>();
+  creditCard = input.required<CreditCardAccount>();
+  accounts = input.required<Account[]>();
   pay = output<CardPaymentPayload>();
   close = output<void>();
 

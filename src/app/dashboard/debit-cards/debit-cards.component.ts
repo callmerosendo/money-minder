@@ -61,7 +61,6 @@ export class DebitCardsComponent {
   accountName(card: DebitCard): string {
     return (
       card.account?.name ||
-      card.accountName ||
       this.bankAccounts().find((account) => account.id === card.accountId)?.name ||
       "—"
     );

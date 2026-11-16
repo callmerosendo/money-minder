@@ -1,54 +1,52 @@
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpParams } from "@angular/common/http";
 import { Injectable, inject } from "@angular/core";
 import { type Observable, catchError, map, throwError } from "rxjs";
 
 import {
-  cashFlowAdapter,
-  categoryBreakdownAdapter,
-  creditCardsAdapter,
-  financialSummaryAdapter,
-  loansAdapter,
-  monthlySummaryAdapter,
-  paginatedTransactionsAdapter,
+  categoryTotalsAdapter,
   paginatedTransfersAdapter,
-  purchasesAdapter,
-  recentTransactionsAdapter,
-  remindersAdapter,
-  savingsAdapter,
   yearlyCategoriesAdapter,
 } from "../adapters";
 import { API_BASE_URL } from "../constants/api";
 import type {
-  ApiAccount,
-  ApiCashFlow,
-  ApiCategoryBreakdown,
-  ApiCreditCard,
-  ApiEntry,
-  ApiExit,
-  ApiLoan,
-  ApiMonthlySummary,
-  ApiPurchaseSummary,
-  ApiRecentTransaction,
-  ApiReminder,
-  ApiSaving,
-  ApiTransfer,
-  ApiYearlyCategories,
-  CashFLow,
-  CreditCards,
+  Account,
+  Category,
+  CreditCardAccount,
+  CreditCardPurchasesSummary,
+  DailyPhraseResponse,
   DebitCard,
-  FinancialSummary,
-  Loans,
-  Paginated,
-  Purchases,
-  Quote,
-  RecentTransactions,
+  ExpenseCategoryBreakdownItem,
+  GetCategoriesQuery,
+  GetTransactionsQuery,
+  LegacyCashFlowItem,
+  LoanListItem,
+  MonthlyReportResponse,
+  PaginatedResponse,
   Reminder,
   Saving,
-  Summary,
+  SpecialsCategoryItem,
+  SpecialsFinancialSummaryYearly,
+  SpecialsRecentTransactionItem,
+  SpecialsYearlyCategoriesResponse,
   Transaction,
-  TransactionChart,
   Transfer,
+  TransferTransaction,
 } from "../models";
+
+/** Query values that should be omitted from the URL entirely. */
+const isBlank = (value: unknown): boolean => value === undefined || value === null || value === "";
+
+/** Inclusive `[from, to]` date-only bounds covering a whole calendar month. */
+const monthRange = (year: number, month: string): { from: string; to: string } => {
+  const monthNumber = Number(month);
+  const lastDay = new Date(year, monthNumber, 0).getDate();
+  const paddedMonth = month.padStart(2, "0");
+
+  return {
+    from: `${year}-${paddedMonth}-01`,
+    to: `${year}-${paddedMonth}-${String(lastDay).padStart(2, "0")}`,
+  };
+};
 
 @Injectable({
   providedIn: "root",
@@ -61,45 +59,42 @@ export class ApiCallsService {
    * Retrieves the financial summary for a specific year.
    * @returns An Observable that emits the financial summary data.
    */
-  getFinancialSummary(): Observable<FinancialSummary> {
+  getFinancialSummary(): Observable<SpecialsFinancialSummaryYearly> {
     const url = `${API_BASE_URL}/specials/financial-summary-yearly?year=${this.year}`;
-    return this.http.get<FinancialSummary>(url).pipe(
-      map((result) => financialSummaryAdapter(result)),
-      catchError((error) => this.handleError("Financial Summary", error)),
-    );
+    return this.http
+      .get<SpecialsFinancialSummaryYearly>(url)
+      .pipe(catchError((error) => this.handleError("Financial Summary", error)));
   }
 
   /**
    * Retrieves the recent transactions.
    * @returns An Observable that emits the recent transactions data.
    */
-  getRecentTransactions(): Observable<RecentTransactions[]> {
+  getRecentTransactions(): Observable<SpecialsRecentTransactionItem[]> {
     const url = `${API_BASE_URL}/specials/recent-transactions?year=${this.year}`;
-    return this.http.get<ApiRecentTransaction[]>(url).pipe(
-      map((result) => recentTransactionsAdapter(result)),
-      catchError((error) => this.handleError("Recent Transactions", error)),
-    );
+    return this.http
+      .get<SpecialsRecentTransactionItem[]>(url)
+      .pipe(catchError((error) => this.handleError("Recent Transactions", error)));
   }
 
   /**
    * Retrieves the cash flow data.
-   * @returns An Observable of type CashFlow[] representing the cash flow data.
+   * @returns An Observable of type LegacyCashFlowItem[] representing the cash flow data.
    */
-  getCashFlow(): Observable<CashFLow[]> {
+  getCashFlow(): Observable<LegacyCashFlowItem[]> {
     const url = `${API_BASE_URL}/specials/cash-flow?year=${this.year}`;
-    return this.http.get<ApiCashFlow[]>(url).pipe(
-      map((result) => cashFlowAdapter(result)),
-      catchError((error) => this.handleError("Cash Flow", error)),
-    );
+    return this.http
+      .get<LegacyCashFlowItem[]>(url)
+      .pipe(catchError((error) => this.handleError("Cash Flow", error)));
   }
 
   /**
    * Retrieves the yearly main categories.
-   * @returns An Observable of type TransactionChart[] representing the main categories.
+   * @returns An Observable of type SpecialsCategoryItem[] representing the main categories.
    */
-  getMainCategories(): Observable<TransactionChart[]> {
+  getMainCategories(): Observable<SpecialsCategoryItem[]> {
     const url = `${API_BASE_URL}/specials/yearly-categories?year=${this.year}`;
-    return this.http.get<ApiYearlyCategories>(url).pipe(
+    return this.http.get<SpecialsYearlyCategoriesResponse>(url).pipe(
       map((result) => yearlyCategoriesAdapter(result)),
       catchError((error) => this.handleError("Main Categories", error)),
     );
@@ -111,10 +106,9 @@ export class ApiCallsService {
    */
   getSavings(): Observable<Saving[]> {
     const url = `${API_BASE_URL}/savings`;
-    return this.http.get<ApiSaving[]>(url).pipe(
-      map((result) => savingsAdapter(result)),
-      catchError((error) => this.handleError("Savings", error)),
-    );
+    return this.http
+      .get<Saving[]>(url)
+      .pipe(catchError((error) => this.handleError("Savings", error)));
   }
 
   /**
@@ -123,67 +117,91 @@ export class ApiCallsService {
    */
   getReminders(): Observable<Reminder[]> {
     const url = `${API_BASE_URL}/reminders`;
-    return this.http.get<ApiReminder[]>(url).pipe(
-      map((result) => remindersAdapter(result)),
-      catchError((error) => this.handleError("Reminders", error)),
-    );
+    return this.http
+      .get<Reminder[]>(url)
+      .pipe(catchError((error) => this.handleError("Reminders", error)));
+  }
+
+  /**
+   * Retrieves every category, optionally filtered by income/expense.
+   */
+  getCategories(query: GetCategoriesQuery = {}): Observable<Category[]> {
+    const url = `${API_BASE_URL}/categories`;
+    return this.http
+      .get<Category[]>(url, { params: this.toHttpParams(query) })
+      .pipe(catchError((error) => this.handleError("Categories", error)));
   }
 
   /**
    * Retrieves the quote of the day.
-   * @returns An Observable of type Quote representing the quote of the day.
+   * @returns An Observable of type DailyPhraseResponse representing the quote of the day.
    */
-  getQuote(): Observable<Quote> {
+  getQuote(): Observable<DailyPhraseResponse | null> {
     const url = `${API_BASE_URL}/phrases/daily-phrase`;
-    return this.http.get<Quote>(url).pipe(catchError((error) => this.handleError("Quote", error)));
+    return this.http
+      .get<DailyPhraseResponse | null>(url)
+      .pipe(catchError((error) => this.handleError("Quote", error)));
   }
 
   /**
-   * Retrieves the last entries.
+   * Searches, filters, and paginates transactions.
+   */
+  getTransactions(query: GetTransactionsQuery = {}): Observable<PaginatedResponse<Transaction>> {
+    const url = `${API_BASE_URL}/transactions`;
+    return this.http
+      .get<PaginatedResponse<Transaction>>(url, { params: this.toHttpParams(query) })
+      .pipe(catchError((error) => this.handleError("Transactions", error)));
+  }
+
+  /**
+   * Retrieves the newest income transactions.
    * @returns An Observable of type Transaction[] representing the last entries.
    */
   getLastEntries(): Observable<Transaction[]> {
-    const url = `${API_BASE_URL}/entries?page=1&pageSize=15&sortBy=date&sortOrder=desc`;
-    return this.http.get<Paginated<ApiEntry>>(url).pipe(
-      map((result) => paginatedTransactionsAdapter(result)),
-      catchError((error) => this.handleError("Last Entries", error)),
-    );
+    return this.getTransactions({
+      type: "income",
+      page: 1,
+      pageSize: 15,
+      sortOrder: "desc",
+    }).pipe(map((result) => result.items ?? []));
   }
 
   /**
-   * Retrieves the last exits.
+   * Retrieves the newest expense transactions.
    * @returns An Observable of type Transaction[] representing the last exits.
    */
   getLastExits(): Observable<Transaction[]> {
-    const url = `${API_BASE_URL}/exits?page=1&pageSize=15&sortBy=date&sortOrder=desc`;
-    return this.http.get<Paginated<ApiExit>>(url).pipe(
-      map((result) => paginatedTransactionsAdapter(result)),
-      catchError((error) => this.handleError("Last Exits", error)),
-    );
+    return this.getTransactions({
+      type: "expense",
+      page: 1,
+      pageSize: 15,
+      sortOrder: "desc",
+    }).pipe(map((result) => result.items ?? []));
   }
 
   /**
-   * Retrieves every exit charged to a credit card, newest first.
+   * Retrieves every expense recorded against a credit card account, newest first.
    */
-  getCardTransactions(creditCardId: string): Observable<Transaction[]> {
-    const url = `${API_BASE_URL}/exits?creditCardId=${creditCardId}&page=1&pageSize=100&sortBy=date&sortOrder=desc`;
-    return this.http.get<Paginated<ApiExit>>(url).pipe(
-      map((result) => paginatedTransactionsAdapter(result)),
-      catchError((error) => this.handleError("Card Transactions", error)),
-    );
+  getCardTransactions(creditCardAccountId: string): Observable<Transaction[]> {
+    return this.getTransactions({
+      type: "expense",
+      accountId: creditCardAccountId,
+      page: 1,
+      pageSize: 100,
+      sortOrder: "desc",
+    }).pipe(map((result) => result.items ?? []));
   }
 
   /**
-   * Retrieves the exits charged to any credit card.
+   * Retrieves the expenses that touch a credit card liability account.
    */
   getAllCardTransactions(): Observable<Transaction[]> {
-    const url = `${API_BASE_URL}/exits?page=1&pageSize=100&sortBy=date&sortOrder=desc`;
-    return this.http.get<Paginated<ApiExit>>(url).pipe(
-      map((result) =>
-        paginatedTransactionsAdapter(result).filter((item) => Boolean(item.credit_card_id)),
-      ),
-      catchError((error) => this.handleError("Card Transactions", error)),
-    );
+    return this.getTransactions({
+      type: "expense",
+      page: 1,
+      pageSize: 100,
+      sortOrder: "desc",
+    }).pipe(map((result) => (result.items ?? []).filter((item) => item.affectsLiability)));
   }
 
   /**
@@ -193,67 +211,70 @@ export class ApiCallsService {
    * @param month - The month of the analysis summary (01-12).
    * @returns An Observable that emits the analysis summary.
    */
-  getAnalysisSummary(year: number, month: string): Observable<Summary> {
-    const url = `${API_BASE_URL}/specials/financial-summary-monthly?year=${year}&month=${Number(month)}`;
-    return this.http.get<ApiMonthlySummary>(url).pipe(
-      map((result) => monthlySummaryAdapter(result)),
-      catchError((error) => this.handleError("Analysis Summary", error)),
-    );
+  getAnalysisSummary(year: number, month: string): Observable<MonthlyReportResponse> {
+    const url = `${API_BASE_URL}/reports/monthly?year=${year}&month=${Number(month)}`;
+    return this.http
+      .get<MonthlyReportResponse>(url)
+      .pipe(catchError((error) => this.handleError("Analysis Summary", error)));
   }
 
   /**
-   * Retrieves monthly entries by category for a specific year and month.
+   * Retrieves monthly income grouped by category for a specific year and month.
    * @param year - The year of the entries.
    * @param month - The month of the entries (01-12).
-   * @returns An Observable of TransactionChart array representing the monthly entries.
+   * @returns An Observable of SpecialsCategoryItem array representing the monthly entries.
    */
-  getMonthlyEntries(year: number, month: string): Observable<TransactionChart[]> {
-    const url = `${API_BASE_URL}/entries/summary/monthly?year=${year}&month=${Number(month)}`;
-    return this.http.get<ApiCategoryBreakdown[]>(url).pipe(
-      map((result) => categoryBreakdownAdapter(result)),
+  getMonthlyEntries(year: number, month: string): Observable<SpecialsCategoryItem[]> {
+    const { from, to } = monthRange(year, month);
+    const url = `${API_BASE_URL}/transactions?type=income&from=${from}&to=${to}&page=1&pageSize=100&sortOrder=asc`;
+    return this.http.get<PaginatedResponse<Transaction>>(url).pipe(
+      map((result) => categoryTotalsAdapter(result.items ?? [])),
       catchError((error) => this.handleError("Monthly Entries", error)),
     );
   }
 
   /**
-   * Retrieves monthly exits by category for a specific year and month.
+   * Retrieves monthly expenses grouped by category for a specific year and month.
    *
-   * @param year - The year for which to retrieve the exits.
-   * @param month - The month for which to retrieve the exits (01-12).
-   * @returns An Observable that emits an array of TransactionChart objects representing the monthly exits.
+   * @param year - The year for which to retrieve the expenses.
+   * @param month - The month for which to retrieve the expenses (01-12).
+   * @returns An Observable that emits the category breakdown for the month.
    */
-  getMonthlyExits(year: number, month: string): Observable<TransactionChart[]> {
-    const url = `${API_BASE_URL}/exits/summary/monthly?year=${year}&month=${Number(month)}`;
-    return this.http.get<ApiCategoryBreakdown[]>(url).pipe(
-      map((result) => categoryBreakdownAdapter(result)),
+  getMonthlyExits(year: number, month: string): Observable<SpecialsCategoryItem[]> {
+    const { from, to } = monthRange(year, month);
+    const url = `${API_BASE_URL}/reports/expenses-by-category?from=${from}&to=${to}`;
+    return this.http.get<ExpenseCategoryBreakdownItem[]>(url).pipe(
+      map((result): SpecialsCategoryItem[] => result ?? []),
       catchError((error) => this.handleError("Monthly Exits", error)),
     );
   }
 
-  getCreditCards(): Observable<CreditCards[]> {
+  /**
+   * Retrieves every credit card account.
+   */
+  getCreditCards(): Observable<CreditCardAccount[]> {
     const url = `${API_BASE_URL}/credit-cards`;
-    return this.http.get<ApiCreditCard[]>(url).pipe(
-      map((result) => creditCardsAdapter(result)),
-      catchError((error) => this.handleError("Credit Cards", error)),
-    );
+    return this.http
+      .get<CreditCardAccount[]>(url)
+      .pipe(catchError((error) => this.handleError("Credit Cards", error)));
   }
 
   /**
    * Retrieves every active account with its server-calculated balance.
    */
-  getAccounts(): Observable<ApiAccount[]> {
+  getAccounts(): Observable<Account[]> {
     const url = `${API_BASE_URL}/accounts`;
     return this.http
-      .get<ApiAccount[]>(url)
+      .get<Account[]>(url)
       .pipe(catchError((error) => this.handleError("Accounts", error)));
   }
 
   /**
    * Retrieves transfers, flattened into the table view model.
    */
-  getTransfers(page = 1, pageSize = 15): Observable<Paginated<Transfer>> {
+  getTransfers(page = 1, pageSize = 15): Observable<PaginatedResponse<Transfer>> {
     const url = `${API_BASE_URL}/transfers?page=${page}&pageSize=${pageSize}`;
-    return this.http.get<Paginated<ApiTransfer>>(url).pipe(
+    return this.http.get<PaginatedResponse<TransferTransaction>>(url).pipe(
       map((result) => paginatedTransfersAdapter(result)),
       catchError((error) => this.handleError("Transfers", error)),
     );
@@ -262,28 +283,49 @@ export class ApiCallsService {
   /**
    * Retrieves debit cards, optionally filtered by linked account.
    */
-  getDebitCards(accountId?: string, page = 1, pageSize = 15): Observable<Paginated<DebitCard>> {
-    const accountFilter = accountId ? `&accountId=${accountId}` : "";
-    const url = `${API_BASE_URL}/debit-cards?page=${page}&pageSize=${pageSize}${accountFilter}`;
+  getDebitCards(
+    accountId?: string,
+    page = 1,
+    pageSize = 15,
+  ): Observable<PaginatedResponse<DebitCard>> {
+    const url = `${API_BASE_URL}/debit-cards?page=${page}&pageSize=${pageSize}`;
     return this.http
-      .get<Paginated<DebitCard>>(url)
+      .get<PaginatedResponse<DebitCard>>(url, { params: this.toHttpParams({ accountId }) })
       .pipe(catchError((error) => this.handleError("Debit Cards", error)));
   }
 
-  getPurchases(): Observable<Purchases[]> {
+  /**
+   * Retrieves the current billing summary for every credit card.
+   */
+  getPurchases(): Observable<CreditCardPurchasesSummary[]> {
     const url = `${API_BASE_URL}/credit-cards/purchases`;
-    return this.http.get<ApiPurchaseSummary[]>(url).pipe(
-      map((result) => purchasesAdapter(result)),
-      catchError((error) => this.handleError("Purchases", error)),
-    );
+    return this.http
+      .get<CreditCardPurchasesSummary[]>(url)
+      .pipe(catchError((error) => this.handleError("Purchases", error)));
   }
 
-  getLoans(): Observable<Loans[]> {
+  /**
+   * Retrieves every loan with its computed totals and latest payments.
+   */
+  getLoans(): Observable<LoanListItem[]> {
     const url = `${API_BASE_URL}/loans`;
-    return this.http.get<ApiLoan[]>(url).pipe(
-      map((result) => loansAdapter(result)),
-      catchError((error) => this.handleError("Loans", error)),
-    );
+    return this.http
+      .get<LoanListItem[]>(url)
+      .pipe(catchError((error) => this.handleError("Loans", error)));
+  }
+
+  /**
+   * Loads a query object into `HttpParams`, skipping blank values.
+   */
+  private toHttpParams(query: object): HttpParams {
+    let params = new HttpParams();
+
+    for (const [key, value] of Object.entries(query)) {
+      if (isBlank(value)) continue;
+      params = params.set(key, String(value));
+    }
+
+    return params;
   }
 
   private handleError(label: string, error: unknown) {

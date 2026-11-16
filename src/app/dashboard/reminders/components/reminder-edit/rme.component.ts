@@ -1,6 +1,12 @@
 import { Component, type OnInit, input, output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import type { EditReminder, Reminder, ReminderRecurrence, ReminderStatus } from "@app/models";
+import type {
+  Reminder,
+  ReminderRecurrence,
+  ReminderStatus,
+  UpdateReminderPayload,
+} from "@app/models";
+import { moneyToNumber } from "@app/utils";
 
 @Component({
   selector: "app-reminder-edit",
@@ -9,24 +15,22 @@ import type { EditReminder, Reminder, ReminderRecurrence, ReminderStatus } from 
 })
 export class ReminderEditComponent implements OnInit {
   reminder = input.required<Reminder>();
-  reminderEdit: EditReminder = {
-    id: "",
+  reminderEdit: UpdateReminderPayload = {
     title: "",
-    amount: null,
+    amount: undefined,
     dueAt: "",
     recurrence: "none",
     status: "pending",
   };
   closeModal = output<void>();
-  save = output<EditReminder>();
+  save = output<UpdateReminderPayload>();
   readonly recurrenceOptions: ReminderRecurrence[] = ["none", "monthly", "yearly"];
   readonly statusOptions: ReminderStatus[] = ["pending", "done"];
 
   ngOnInit() {
     this.reminderEdit = {
-      id: this.reminder().id,
       title: this.reminder().title,
-      amount: this.reminder().amount,
+      amount: this.reminder().amount === null ? undefined : moneyToNumber(this.reminder().amount),
       // datetime-local expects `YYYY-MM-DDTHH:mm`, while the API returns an
       // ISO timestamp with seconds and timezone.
       dueAt: this.reminder().due_at.slice(0, 16),

@@ -1,5 +1,6 @@
 import { type AfterViewInit, Component, input } from "@angular/core";
-import type { CashFLow } from "@app/models";
+import type { LegacyCashFlowItem } from "@app/models";
+import { moneyToNumber } from "@app/utils";
 import { Chart, registerables } from "chart.js";
 import { createGraphicBar } from "../utils";
 
@@ -8,7 +9,7 @@ import { createGraphicBar } from "../utils";
   templateUrl: "./bar-chart.component.html",
 })
 export class BarChartComponent implements AfterViewInit {
-  dataCF = input.required<CashFLow[]>();
+  dataCF = input.required<LegacyCashFlowItem[]>();
   private canvas!: HTMLCanvasElement;
   private ctx!: CanvasRenderingContext2D | null;
   private months: Record<string, string> = {
@@ -36,8 +37,8 @@ export class BarChartComponent implements AfterViewInit {
 
   initializeChart() {
     if (this.dataCF()) {
-      const ingresosMensuales = this.dataCF().map((cf) => cf.total_ingresos);
-      const egresosMensuales = this.dataCF().map((cf) => cf.total_egresos);
+      const ingresosMensuales = this.dataCF().map((cf) => moneyToNumber(cf.total_ingresos));
+      const egresosMensuales = this.dataCF().map((cf) => moneyToNumber(cf.total_egresos));
       const saldoMensual = ingresosMensuales.map(
         (ingreso, index) => ingreso - egresosMensuales[index],
       );

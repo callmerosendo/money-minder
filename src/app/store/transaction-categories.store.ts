@@ -1,11 +1,11 @@
 import { InjectionToken, inject } from "@angular/core";
-import type { ApiCategory } from "@app/models";
+import type { Category } from "@app/models";
 import { ApiCallsService } from "@app/services";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
 import { firstValueFrom } from "rxjs";
 
 type TransactionCategoriesState = {
-  categories: ApiCategory[];
+  categories: Category[];
 };
 
 const initialState: TransactionCategoriesState = {
