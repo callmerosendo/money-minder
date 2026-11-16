@@ -43,7 +43,7 @@ export class SidebarComponent {
     const separator = document.getElementById("separator-sidebar");
 
     sidebar?.classList.toggle("-translate-x-full", this.isSidebarOpen);
-    separator?.classList.toggle("translate-x-64", !this.isSidebarOpen);
+    separator?.classList.toggle("translate-x-72", !this.isSidebarOpen);
 
     this.isSidebarOpen = !this.isSidebarOpen;
   }
