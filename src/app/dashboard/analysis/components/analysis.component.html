@@ -1,14 +1,9 @@
-@let summary = summary$ | async;
-@let balance = net(summary);
-@let monthlyEntries = monthlyEntries$ | async;
-@let monthlyExits = monthlyExits$ | async;
-
 @if (isLogged()) {
   <main class="container py-10">
     <header class="border-b border-rule pb-6">
       <h1 class="text-4xl">Análisis del mes</h1>
       <p class="lead mt-3 max-w-[48ch] text-ink-2">
-        Mostrando datos de {{ currentMonth }} {{ currentYear }}.
+        Mostrando datos de {{ currentMonth() }} {{ currentYear() }}.
       </p>
     </header>
 
@@ -18,20 +13,20 @@
         id="month-input"
         type="month"
         class="w-auto"
-        [value]="currentDate"
+        [value]="month()"
         (change)="onMonthChange($event)"
       />
     </div>
 
     <div class="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
       <div>
-        @if (monthlyEntries && monthlyEntries.length > 0) {
-          <app-pie-chart [dataTC]="monthlyEntries" [text]="'Ingresos'" [chartId]="'Ingresos'" />
+        @if (entries().length) {
+          <app-chart [spec]="entriesSpec()" />
         }
       </div>
       <div>
-        @if (monthlyExits && monthlyExits.length > 0) {
-          <app-pie-chart [dataTC]="monthlyExits" [text]="'Egresos'" [chartId]="'Egresos'" />
+        @if (exits().length) {
+          <app-chart [spec]="exitsSpec()" />
         }
       </div>
     </div>
@@ -41,13 +36,13 @@
         <div class="flex items-baseline justify-between border-t border-rule py-4">
           <dt class="text-muted">Total de ingresos</dt>
           <dd id="totalIngresos" class="stat-figure text-xl">
-            {{ summary?.summary.income ?? "0.00" | currency: "USD" : "symbol" }}
+            {{ summary()?.summary.income ?? "0.00" | currency: "USD" : "symbol" }}
           </dd>
         </div>
         <div class="flex items-baseline justify-between border-t border-rule py-4">
           <dt class="text-muted">Total de gastos</dt>
           <dd id="totalEgresos" class="stat-figure text-xl">
-            {{ summary?.summary.expenses ?? "0.00" | currency: "USD" : "symbol" }}
+            {{ summary()?.summary.expenses ?? "0.00" | currency: "USD" : "symbol" }}
           </dd>
         </div>
         <div class="flex items-baseline justify-between border-y border-rule py-4">
@@ -56,11 +51,11 @@
             id="difference"
             class="stat-figure text-xl"
             [ngClass]="{
-              'text-accent': +balance >= 0,
-              'text-danger': +balance < 0,
+              'text-accent': +net() >= 0,
+              'text-danger': +net() < 0,
             }"
           >
-            {{ balance | currency: "USD" : "symbol" }}
+            {{ net() | currency: "USD" : "symbol" }}
           </dd>
         </div>
       </dl>

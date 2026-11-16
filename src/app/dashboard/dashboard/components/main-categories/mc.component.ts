@@ -1,14 +1,16 @@
-import { Component, inject } from "@angular/core";
+import { Component, computed, inject } from "@angular/core";
 
-import { PieChartComponent } from "@app/charts";
+import { ChartComponent, toCategoryPieSpec } from "@app/charts";
 import { CategoriesStore } from "@app/store";
 
 @Component({
   selector: "app-main-categories",
   templateUrl: "./mc.component.html",
-  imports: [PieChartComponent],
+  imports: [ChartComponent],
 })
 export class MainCategoriesComponent {
   readonly store = inject(CategoriesStore);
   categories = this.store.categories;
+
+  categoriesSpec = computed(() => toCategoryPieSpec(this.categories(), "Categorías principales"));
 }

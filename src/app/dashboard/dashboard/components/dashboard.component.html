@@ -7,21 +7,25 @@
     </p>
   </header>
 
-  <div class="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+  <div class="mt-10 flex flex-col gap-6">
     @if (isAuth()) {
-      <app-financial-summary class="col-span-1 md:col-span-3" />
+      <div class="flex flex-wrap gap-6 *:min-w-0 *:empty:hidden not-has-[>:not(:empty)]:hidden">
+        <app-financial-summary class="flex-[1_1_18rem]" />
+        <app-recent-transactions class="flex-[2_1_26rem]" />
+      </div>
 
-      <app-recent-transactions class="col-span-1 md:col-span-2" />
+      <div class="flex flex-wrap gap-6 *:min-w-0 *:empty:hidden not-has-[>:not(:empty)]:hidden">
+        <app-cash-flow class="flex-[1_1_26rem]" />
+        <app-main-categories class="flex-[1_1_26rem]" />
+      </div>
 
-      <app-cash-flow class="col-span-1 md:col-span-2 lg:col-span-3" />
-
-      <app-main-categories class="col-span-1 md:col-span-2 lg:col-span-3" />
-
-      <app-goal />
-
-      <app-reminders />
+      <div class="flex flex-wrap gap-6 *:min-w-0 *:empty:hidden not-has-[>:not(:empty)]:hidden">
+        <app-goal class="flex-[1_1_16rem]" />
+        <app-reminders class="flex-[1_1_16rem]" />
+        <app-quote class="flex-[1_1_16rem]" />
+      </div>
+    } @else {
+      <app-quote />
     }
-
-    <app-quote />
   </div>
 </main>

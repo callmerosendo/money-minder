@@ -201,7 +201,7 @@
     align-items: center;
     justify-content: center;
     padding: var(--space-md);
-    background: color-mix(in oklab, var(--color-ink) 52%, transparent);
+    background: var(--color-scrim);
     overflow-y: auto;
   }
   /* The modal is a sheet cut from the page: ink bar on top, hairline all round. */

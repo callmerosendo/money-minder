@@ -1,76 +1,77 @@
-import { AsyncPipe, CommonModule, CurrencyPipe } from "@angular/common";
-import { Component, type OnInit, inject } from "@angular/core";
+import { CurrencyPipe, NgClass } from "@angular/common";
+import { Component, computed, inject, signal } from "@angular/core";
+import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { Title } from "@angular/platform-browser";
 
-import { PieChartComponent } from "@app/charts";
+import { ChartComponent, toCategoryPieSpec } from "@app/charts";
 import { NotLoggedComponent } from "@app/core";
 import type { MonthlyReportResponse, SpecialsCategoryItem } from "@app/models";
 import { ApiCallsService, AuthCacheService } from "@app/services";
 import { subtractMoney } from "@app/utils";
-import type { Observable } from "rxjs";
+import { catchError, of, switchMap, type Observable } from "rxjs";
+
+const now = new Date();
+const INITIAL_MONTH = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
 @Component({
   selector: "app-analysis",
-  imports: [AsyncPipe, CommonModule, PieChartComponent, NotLoggedComponent, CurrencyPipe],
+  imports: [ChartComponent, NotLoggedComponent, CurrencyPipe, NgClass],
   templateUrl: "./analysis.component.html",
 })
-export default class AnalysisComponent implements OnInit {
-  private readonly titleService;
-  private readonly apiCalls;
-  private readonly authCache;
-  isLogged;
+export default class AnalysisComponent {
+  private readonly apiCalls = inject(ApiCallsService);
+  readonly isLogged = inject(AuthCacheService).isLoggedIn;
 
-  currentMonth = new Date().toLocaleString("default", { month: "long" });
-  currentMonthNumber = new Date().getMonth() + 1;
-  currentYear = new Date().getFullYear();
-  currentDate = new Date().toISOString().substring(0, 7);
-  summary$!: Observable<MonthlyReportResponse>;
-  monthlyEntries$!: Observable<SpecialsCategoryItem[]>;
-  monthlyExits$!: Observable<SpecialsCategoryItem[]>;
+  readonly month = signal(INITIAL_MONTH);
+
+  private readonly params = computed(() => {
+    const [year, month] = this.month().split("-");
+    return { year: Number(year), month };
+  });
+
+  readonly currentYear = computed(() => this.params().year);
+  readonly currentMonth = computed(() =>
+    new Date(this.params().year, Number(this.params().month) - 1).toLocaleString("default", {
+      month: "long",
+    }),
+  );
+
+  readonly summary = this.fromMonth<MonthlyReportResponse | null>(
+    (y, m) => this.apiCalls.getAnalysisSummary(y, m),
+    null,
+  );
+  readonly entries = this.fromMonth<SpecialsCategoryItem[]>(
+    (y, m) => this.apiCalls.getMonthlyEntries(y, m),
+    [],
+  );
+  readonly exits = this.fromMonth<SpecialsCategoryItem[]>(
+    (y, m) => this.apiCalls.getMonthlyExits(y, m),
+    [],
+  );
+
+  readonly entriesSpec = computed(() => toCategoryPieSpec(this.entries(), "Ingresos"));
+  readonly exitsSpec = computed(() => toCategoryPieSpec(this.exits(), "Egresos"));
+
+  /** income minus expenses for the recorded month, as a money string */
+  readonly net = computed(() => {
+    const s = this.summary();
+    return s ? subtractMoney(s.summary.income, s.summary.expenses) : "0.00";
+  });
 
   constructor() {
-    this.titleService = inject(Title);
-    this.apiCalls = inject(ApiCallsService);
-    this.authCache = inject(AuthCacheService);
-    this.isLogged = this.authCache.isLoggedIn;
-  }
-
-  ngOnInit() {
-    this.titleService.setTitle("Analysis | Money Minder");
-    this.getData();
+    inject(Title).setTitle("Analysis | Money Minder");
   }
 
   onMonthChange(event: Event) {
-    const input = event.target as HTMLInputElement;
-    this.currentDate = input.value;
-    const [year, month] = this.currentDate.split("-").map(Number);
-    this.currentYear = year;
-    this.currentMonthNumber = month;
-    this.currentMonth = new Date(year, month - 1).toLocaleString("default", {
-      month: "long",
-    });
-
-    this.getData();
+    this.month.set((event.target as HTMLInputElement).value);
   }
 
-  /** Income minus expenses for the reported month, as a money string. */
-  net(summary: MonthlyReportResponse | null | undefined): string {
-    if (!summary) return "0.00";
-    return subtractMoney(summary.summary.income, summary.summary.expenses);
-  }
-
-  private getData() {
-    this.summary$ = this.apiCalls.getAnalysisSummary(
-      this.currentYear,
-      this.currentMonthNumber.toString().padStart(2, "0"),
-    );
-    this.monthlyEntries$ = this.apiCalls.getMonthlyEntries(
-      this.currentYear,
-      this.currentMonthNumber.toString().padStart(2, "0"),
-    );
-    this.monthlyExits$ = this.apiCalls.getMonthlyExits(
-      this.currentYear,
-      this.currentMonthNumber.toString().padStart(2, "0"),
+  private fromMonth<T>(fetch: (year: number, month: string) => Observable<T>, initial: T) {
+    return toSignal(
+      toObservable(this.params).pipe(
+        switchMap(({ year, month }) => fetch(year, month).pipe(catchError(() => of(initial)))),
+      ),
+      { initialValue: initial },
     );
   }
 }

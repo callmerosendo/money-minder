@@ -1,2 +1,3 @@
-export * from "./bar-chart/bar-chart.component";
-export * from "./pie-chart/pie-chart.component";
+export * from "./components/chart.component";
+export * from "./chart-spec";
+export type * from "./chart.types";

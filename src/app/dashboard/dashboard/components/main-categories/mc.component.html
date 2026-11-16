@@ -1,7 +1,3 @@
 @if (categories().length) {
-  <app-pie-chart
-    [dataTC]="categories()"
-    [text]="'Categorías Principales'"
-    [chartId]="'main_categories'"
-  />
+  <app-chart [spec]="categoriesSpec()" />
 }
