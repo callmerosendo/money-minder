@@ -214,18 +214,18 @@ importers:
       '@tailwindcss/postcss':
         specifier: ^4.3.5
         version: 4.3.5
+      apexcharts:
+        specifier: 8.8.2
+        version: 8.8.2
       autoprefixer:
         specifier: 10.6.2
         version: 10.6.2(postcss@8.5.32)
-      chart.js:
-        specifier: ^4.6.1
-        version: 4.6.1
       express:
         specifier: ^5.3.0
         version: 5.3.0(supports-color@7.2.0)
-      ng2-charts:
-        specifier: 11.0.0
-        version: 11.0.0(@angular/cdk@22.2.6(0d29b435ae003de874a5d10d6f62df80))(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(@angular/platform-browser@22.2.6(@angular/animations@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3)))(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3)))(chart.js@4.6.1)(rxjs@7.8.2)
+      ng-apexcharts:
+        specifier: ^3.2.0
+        version: 3.2.0(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(apexcharts@8.8.2)(rxjs@7.8.2)
       ngx-cookie-service:
         specifier: ^22.2.0
         version: 22.2.0(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))
@@ -404,15 +404,6 @@ packages:
         optional: true
       vitest:
         optional: true
-
-  '@angular/cdk@22.2.6':
-    resolution: {integrity: sha512-BNAEN+NTWneKcWLi6ZSvbHA99O2AcSQjvnKG/Fa7V9eB+WgXhDRTrfa8qSx2zb57NjFnmABgPWIVkvF76VymEQ==}
-    peerDependencies:
-      '@angular/common': ^22.0.0 || ^23.0.0
-      '@angular/core': ^22.0.0 || ^23.0.0
-      '@angular/forms': ^22.0.0 || ^23.0.0
-      '@angular/platform-browser': ^22.0.0 || ^23.0.0
-      rxjs: ^6.5.3 || ^7.4.0
 
   '@angular/cli@22.2.7':
     resolution: {integrity: sha512-TtO2qiDJj3OjeqZ1V/SiDYkwBKDVk45PxDBxjNksw5sLe2H122RYjdcVPDteEGJjAJGwnP2qkQ5wa/6YRitNiA==}
@@ -1179,9 +1170,6 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
-
-  '@kurkle/color@0.3.2':
-    resolution: {integrity: sha512-fuscdXJ9G1qb7W8VdHi+IwRqij3lBkosAm4ydQtEmbY58OzHXqQhvlxqEkoz0yssNVn38bcpRWgA9PP+OGoisw==}
 
   '@listr2/prompt-adapter-inquirer@4.2.7':
     resolution: {integrity: sha512-k180vxSv2KqmnDxoato6pCqEJsov4U5C0EVmldZkAdNeVBxY48A/LM6TCNPGIzDK/iZSfsZP0Mw+gbWc5hXLyA==}
@@ -2367,6 +2355,13 @@ packages:
     resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
     engines: {node: '>= 8'}
 
+  apex-commons@0.11.0:
+    resolution: {integrity: sha512-r0t1hq4eNzjqRHlf0qG9jiwhd3g/68A9QvgVyjres4oif72NWA1pcvFizpx7gjc/SPECALq0KkL5f12ODIDBPA==}
+
+  apexcharts@8.8.2:
+    resolution: {integrity: sha512-aKrasrtwiMULc9wYW8OyxZwBztfEEkOwHiNDEE39pDsMm79g3C+Zq0CSeXhgeVxPOKCo8E+KR6OqXPgzes1vsg==}
+    engines: {node: ^20.19.0 || ^22.12.0 || >=24.0.0}
+
   argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
 
@@ -2477,10 +2472,6 @@ packages:
 
   chardet@2.2.0:
     resolution: {integrity: sha512-rddelWYNPRrXq6PtNEN2S3f6t9ILzvqaN5pVgi4kqt9jHQaXIial9PznB5iSPVlQSLNaaH22ItWz3EJtQ10+OA==}
-
-  chart.js@4.6.1:
-    resolution: {integrity: sha512-hJyniucsFmq//EvXYvJ6c6mahPoI3kaxdjVH8awTaJ/fDNWeSqqqArixMJWkWNN6fcYvPU3HneSANFNYtRi61g==}
-    engines: {pnpm: '>=8'}
 
   chokidar@3.6.0:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
@@ -3503,15 +3494,13 @@ packages:
     resolution: {integrity: sha512-NMPBRMJgiQHjbd8phG3Vebdx4kZ1H121rbl5IkMqeOsahptB9BKo/d7oJ3zTXqTgagn2bWlNSXkh0QUGM31RYg==}
     engines: {node: '>=18'}
 
-  ng2-charts@11.0.0:
-    resolution: {integrity: sha512-KHFPsGSyHtluWuvyIhWQVFNWqeQJ25Jy69XajEiAuAXknc3OM9VY45hu7vwv9p51osg+E5GnPxVdPQ3c08L9KA==}
+  ng-apexcharts@3.2.0:
+    resolution: {integrity: sha512-c9rsxSRyOkObw7GK2x77iQqll/RhNYgD6G9RZQhlp9O4YJR2Uv+QzPou6t3B+BSNtB3fCRZAbuQGsr/y9B9y0g==}
     peerDependencies:
-      '@angular/cdk': '>=22.0.0'
-      '@angular/common': '>=22.0.0'
-      '@angular/core': '>=22.0.0'
-      '@angular/platform-browser': '>=22.0.0'
-      chart.js: ^3.4.0 || ^4.0.0
-      rxjs: ^6.5.3 || ^7.4.0
+      '@angular/common': '>=20.0.0'
+      '@angular/core': '>=20.0.0'
+      apexcharts: ^6.0.0 || ^7.0.0 || ^8.0.0
+      rxjs: ^7.8.2
 
   ngx-cookie-service@22.2.0:
     resolution: {integrity: sha512-bvXq4bkNJFvoNtjhCL2Kvk1HprrB/oAj4yEq1g6RSYOeexZzhNbFEM6YnEB4/5IgzamQPzBEDc+Moh01inS32A==}
@@ -4494,16 +4483,6 @@ snapshots:
       - tsx
       - yaml
 
-  '@angular/cdk@22.2.6(0d29b435ae003de874a5d10d6f62df80)':
-    dependencies:
-      '@angular/common': 22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2)
-      '@angular/core': 22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3)
-      '@angular/forms': 22.2.6(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(@angular/platform-browser@22.2.6(@angular/animations@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3)))(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3)))(rxjs@7.8.2)
-      '@angular/platform-browser': 22.2.6(@angular/animations@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3)))(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))
-      parse5: 8.1.0
-      rxjs: 7.8.2
-      tslib: 2.9.1
-
   '@angular/cli@22.2.7(@types/node@26.6.6)(chokidar@5.0.0)':
     dependencies:
       '@angular-devkit/architect': 0.2202.7(chokidar@5.0.0)
@@ -5329,8 +5308,6 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
 
-  '@kurkle/color@0.3.2': {}
-
   '@listr2/prompt-adapter-inquirer@4.2.7(@inquirer/prompts@8.7.2(@types/node@26.6.6))(@types/node@26.6.6)(listr2@11.1.0)':
     dependencies:
       '@inquirer/prompts': 8.7.2(@types/node@26.6.6)
@@ -6089,6 +6066,12 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.1
 
+  apex-commons@0.11.0: {}
+
+  apexcharts@8.8.2:
+    dependencies:
+      apex-commons: 0.11.0
+
   argparse@2.0.1: {}
 
   argue-cli@3.2.0: {}
@@ -6220,10 +6203,6 @@ snapshots:
   chalk@5.6.2: {}
 
   chardet@2.2.0: {}
-
-  chart.js@4.6.1:
-    dependencies:
-      '@kurkle/color': 0.3.2
 
   chokidar@3.6.0:
     dependencies:
@@ -7275,14 +7254,11 @@ snapshots:
     dependencies:
       content-type: 2.1.0
 
-  ng2-charts@11.0.0(@angular/cdk@22.2.6(0d29b435ae003de874a5d10d6f62df80))(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(@angular/platform-browser@22.2.6(@angular/animations@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3)))(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3)))(chart.js@4.6.1)(rxjs@7.8.2):
+  ng-apexcharts@3.2.0(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(apexcharts@8.8.2)(rxjs@7.8.2):
     dependencies:
-      '@angular/cdk': 22.2.6(0d29b435ae003de874a5d10d6f62df80)
       '@angular/common': 22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2)
       '@angular/core': 22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3)
-      '@angular/platform-browser': 22.2.6(@angular/animations@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3)))(@angular/common@22.2.6(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.2.6(@angular/compiler@22.2.6)(rxjs@7.8.2)(zone.js@0.16.3))
-      chart.js: 4.6.1
-      es-toolkit: 1.52.0
+      apexcharts: 8.8.2
       rxjs: 7.8.2
       tslib: 2.9.1
 
