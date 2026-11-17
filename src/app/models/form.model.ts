@@ -7,4 +7,6 @@ export interface TemplateForm {
   description: FormControl<string>;
   isCreditPayment: FormControl<boolean>;
   creditCardId: FormControl<string>;
+  /** Ledger account the transaction is posted against. */
+  accountId: FormControl<string>;
 }

@@ -1,24 +1,30 @@
-import type { EditPayment, NewPayment, Payments } from "@app/models";
+import type {
+  CreateLoanPaymentPayload,
+  LoanPaymentHistoryItem,
+  UpdateLoanPaymentPayload,
+} from "@app/models";
 
 /**
  * Updates a specific payment within a list of payments.
  * @param payments The array of payments to update.
- * @param editPayment The payment details to update.
+ * @param paymentId The id of the payment to update.
+ * @param payment The payment details to update. Omitted fields are kept.
  * @returns A new array of payments with the updated payment.
  */
 export const updateSpecificPayment = (
-  payments: Payments[],
-  editPayment: EditPayment,
-): Payments[] => {
-  return payments.map((payment) =>
-    payment.id === editPayment.paymentId
+  payments: LoanPaymentHistoryItem[],
+  paymentId: string,
+  payment: UpdateLoanPaymentPayload,
+): LoanPaymentHistoryItem[] => {
+  return payments.map((item) =>
+    item.id === paymentId
       ? {
-          ...payment,
-          amount: editPayment.amount,
-          paidAt: editPayment.paidAt,
-          note: editPayment.note ?? null,
+          ...item,
+          amount: payment.amount ?? item.amount,
+          paidAt: payment.paidAt ?? item.paidAt,
+          note: payment.note ?? item.note,
         }
-      : payment,
+      : item,
   );
 };
 
@@ -38,11 +44,14 @@ export const calculatePaymentDifference = (originalAmount: number, newAmount: nu
  * @param newPayment The payment details to add.
  * @returns A new array of payments with the added payment.
  */
-export const addNewPayment = (payments: Payments[], newPayment: NewPayment): Payments[] => {
-  const newPaymentEntry: Payments = {
+export const addNewPayment = (
+  payments: LoanPaymentHistoryItem[],
+  newPayment: CreateLoanPaymentPayload,
+): LoanPaymentHistoryItem[] => {
+  const newPaymentEntry: LoanPaymentHistoryItem = {
     id: `pending-${Date.now()}`,
     amount: newPayment.amount,
-    paidAt: newPayment.paidAt,
+    paidAt: newPayment.paidAt ?? new Date().toISOString(),
     note: newPayment.note ?? null,
   };
 

@@ -1,70 +1,64 @@
-@let summary = summary$ | async;
-@let balance = ((summary?.totalEntries ?? 0) - (summary?.totalExits ?? 0)).toFixed(2);
-@let monthlyEntries = monthlyEntries$ | async;
-@let monthlyExits = monthlyExits$ | async;
-
 @if (isLogged()) {
   <main class="container py-10">
-    <header class="border-b border-rule pb-6">
-      <h1 class="text-4xl">Análisis del mes</h1>
-      <p class="lead mt-3 max-w-[48ch] text-ink-2">
-        Mostrando datos de {{ currentMonth }} {{ currentYear }}.
-      </p>
+    <header class="flex flex-wrap items-end justify-between gap-6 border-b border-rule pb-6">
+      <div>
+        <h1 class="text-4xl">Análisis del mes</h1>
+        <p class="lead mt-3 text-ink-2 capitalize">{{ currentMonth() }} {{ currentYear() }}</p>
+      </div>
+      <div>
+        <label for="month-input" class="mb-2 block">Mes</label>
+        <input
+          id="month-input"
+          type="month"
+          class="w-auto"
+          [value]="month()"
+          (change)="onMonthChange($event)"
+        />
+      </div>
     </header>
 
-    <div class="mt-6">
-      <label for="month-input" class="mb-2 block">Mes</label>
-      <input
-        id="month-input"
-        type="month"
-        class="w-auto"
-        [value]="currentDate"
-        (change)="onMonthChange($event)"
-      />
-    </div>
+    <div class="mt-10 grid items-start gap-10 lg:grid-cols-[minmax(16rem,22rem)_1fr]">
+      <section aria-label="Totales del mes">
+        <dl>
+          <div class="flex items-baseline justify-between border-t border-rule py-4">
+            <dt class="text-muted">Total de ingresos</dt>
+            <dd id="totalIngresos" class="stat-figure text-xl">
+              {{ summary()?.summary.income ?? "0.00" | currency: "USD" : "symbol" }}
+            </dd>
+          </div>
+          <div class="flex items-baseline justify-between border-t border-rule py-4">
+            <dt class="text-muted">Total de gastos</dt>
+            <dd id="totalEgresos" class="stat-figure text-xl">
+              {{ summary()?.summary.expenses ?? "0.00" | currency: "USD" : "symbol" }}
+            </dd>
+          </div>
+          <div class="flex items-baseline justify-between border-y border-rule-2 py-5">
+            <dt class="text-ink">Saldo</dt>
+            <dd
+              id="difference"
+              class="stat-figure text-3xl"
+              [class.text-accent]="+net() >= 0"
+              [class.text-danger]="+net() < 0"
+            >
+              {{ net() | currency: "USD" : "symbol" }}
+            </dd>
+          </div>
+        </dl>
+      </section>
 
-    <div class="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2">
-      <div>
-        @if (monthlyEntries && monthlyEntries.length > 0) {
-          <app-pie-chart [dataTC]="monthlyEntries" [text]="'Ingresos'" [chartId]="'Ingresos'" />
-        }
-      </div>
-      <div>
-        @if (monthlyExits && monthlyExits.length > 0) {
-          <app-pie-chart [dataTC]="monthlyExits" [text]="'Egresos'" [chartId]="'Egresos'" />
-        }
-      </div>
+      @if (entries().length || exits().length) {
+        <div class="flex flex-wrap gap-6 *:min-w-0">
+          @if (entries().length) {
+            <app-chart class="flex-[1_1_20rem]" [spec]="entriesSpec()" />
+          }
+          @if (exits().length) {
+            <app-chart class="flex-[1_1_20rem]" [spec]="exitsSpec()" />
+          }
+        </div>
+      } @else {
+        <p class="py-10 text-muted">Sin movimientos en este mes.</p>
+      }
     </div>
-
-    <section class="mt-10 max-w-xl" aria-label="Totales del mes">
-      <dl>
-        <div class="flex items-baseline justify-between border-t border-rule py-4">
-          <dt class="text-muted">Total de ingresos</dt>
-          <dd id="totalIngresos" class="stat-figure text-xl">
-            {{ summary?.totalEntries ?? 0 | currency: "USD" : "symbol" }}
-          </dd>
-        </div>
-        <div class="flex items-baseline justify-between border-t border-rule py-4">
-          <dt class="text-muted">Total de gastos</dt>
-          <dd id="totalEgresos" class="stat-figure text-xl">
-            {{ summary?.totalExits ?? 0 | currency: "USD" : "symbol" }}
-          </dd>
-        </div>
-        <div class="flex items-baseline justify-between border-y border-rule py-4">
-          <dt class="text-ink">Saldo</dt>
-          <dd
-            id="difference"
-            class="stat-figure text-xl"
-            [ngClass]="{
-              'text-accent': +balance >= 0,
-              'text-danger': +balance < 0,
-            }"
-          >
-            {{ balance | currency: "USD" : "symbol" }}
-          </dd>
-        </div>
-      </dl>
-    </section>
   </main>
 } @else {
   <app-not-logged />

@@ -1,14 +1,14 @@
 import { Injectable } from "@angular/core";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
 import type {
-  EditPayment,
+  CreateLoanPaymentPayload,
+  CreateLoanPayload,
   LoanDirection,
-  NewLoan,
-  NewPayment,
-  Payments,
+  LoanPaymentHistoryItem,
   TemplateAddPaymentForm,
   TemplateEditForm,
   TemplateLoanForm,
+  UpdateLoanPaymentPayload,
 } from "@app/models";
 
 @Injectable()
@@ -43,7 +43,7 @@ export class LoansFormService {
     });
   }
 
-  getLoanFormData(form: FormGroup): NewLoan {
+  getLoanFormData(form: FormGroup): CreateLoanPayload {
     return {
       name: form.get("name")?.value,
       direction: form.get("direction")?.value,
@@ -54,16 +54,7 @@ export class LoansFormService {
     };
   }
 
-  getPaymentFormData(form: FormGroup, loanId: string): NewPayment {
-    return {
-      loanId,
-      amount: form.get("amount")?.value,
-      paidAt: form.get("paidAt")?.value,
-      note: form.get("note")?.value || undefined,
-    };
-  }
-
-  getEditFormData(form: FormGroup): Omit<EditPayment, "loanId" | "paymentId"> {
+  getPaymentFormData(form: FormGroup): CreateLoanPaymentPayload {
     return {
       amount: form.get("amount")?.value,
       paidAt: form.get("paidAt")?.value,
@@ -71,7 +62,15 @@ export class LoansFormService {
     };
   }
 
-  setEditFormValues(form: FormGroup, payment: Payments): void {
+  getEditFormData(form: FormGroup): UpdateLoanPaymentPayload {
+    return {
+      amount: form.get("amount")?.value,
+      paidAt: form.get("paidAt")?.value,
+      note: form.get("note")?.value || undefined,
+    };
+  }
+
+  setEditFormValues(form: FormGroup, payment: LoanPaymentHistoryItem): void {
     form.setValue({
       paidAt: payment.paidAt.slice(0, 10),
       amount: payment.amount,

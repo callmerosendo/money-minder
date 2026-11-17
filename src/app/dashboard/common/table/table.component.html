@@ -1,42 +1,69 @@
-<div class="mb-8 w-full overflow-x-auto">
-  <table>
-    <thead>
-      <tr>
-        <th scope="col" class="px-2 py-3">Monto</th>
-        <th scope="col" class="px-2 py-3">Categoría</th>
-        <th scope="col" class="px-2 py-3">Descripción</th>
-        <th scope="col" class="px-2 py-3">Fecha</th>
-        @if (type() === "exits") {
-          <th scope="col" class="px-2 py-3">Método de pago</th>
-        }
-      </tr>
-    </thead>
-    <tbody>
-      @for (lastData of dataTransactions(); track $index) {
-        <tr>
-          <th scope="row" class="num px-2 py-3 text-left font-normal whitespace-nowrap">
-            {{ lastData.amount | currency: "USD" : "symbol" }}
-          </th>
-          <td class="px-2 py-3">{{ lastData.category }}</td>
-          <td class="px-2 py-3">{{ lastData.description }}</td>
-          <td class="num px-2 py-3 whitespace-nowrap">{{ lastData.date | date: "d/MM/y" }}</td>
+<ul class="divide-y divide-rule border-y border-rule-2">
+  @for (t of dataTransactions(); track t.id) {
+    <li class="flex items-center gap-3 py-3">
+      <div class="min-w-0 flex-1">
+        <p class="truncate">{{ t.description || t.category?.name || "Sin descripción" }}</p>
+        <p class="mt-0.5 truncate text-sm text-muted">
+          {{ t.category?.name || "Sin categoría" }} ·
+          <span class="num">{{ t.occurredAt | date: "d/MM/y" }}</span>
           @if (type() === "exits") {
-            <td class="px-2 py-3">
-              @if (lastData.isCredit) {
-                Tarjeta
-              } @else {
-                Efectivo
-              }
-            </td>
+            · {{ t.affectsLiability ? "Tarjeta" : "Efectivo" }}
           }
-        </tr>
-      } @empty {
-        <tr>
-          <td class="px-2 py-6 text-center text-muted" [colSpan]="type() === 'exits' ? 5 : 4">
-            Sin registros
-          </td>
-        </tr>
-      }
-    </tbody>
-  </table>
-</div>
+        </p>
+      </div>
+
+      <p class="num shrink-0 text-right whitespace-nowrap">
+        {{ t.amount | currency: "USD" : "symbol" }}
+      </p>
+
+      <!-- TODO: wire up edit/delete -->
+      <div class="flex shrink-0 gap-1">
+        <button
+          type="button"
+          disabled
+          aria-label="Editar"
+          title="Editar"
+          class="rounded p-1.5 text-ink-2 hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <svg
+            class="size-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          disabled
+          aria-label="Eliminar"
+          title="Eliminar"
+          class="rounded p-1.5 text-ink-2 hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-40"
+        >
+          <svg
+            class="size-4"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.75"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 6h18" />
+            <path d="M8 6V4h8v2" />
+            <path d="M6 6l1 14h10l1-14" />
+          </svg>
+        </button>
+      </div>
+    </li>
+  } @empty {
+    <li class="py-6 text-center text-muted">Sin registros</li>
+  }
+</ul>

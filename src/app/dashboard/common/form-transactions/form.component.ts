@@ -1,15 +1,16 @@
 import { Component, type Signal, computed, inject, input, output } from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
 import { SubmitBttnComponent } from "@app/core";
-import type { TemplateForm } from "@app/models";
+import type { CreateTransactionPayload, TemplateForm, Transaction } from "@app/models";
 import { AlertService, FormSubmitService } from "@app/services";
 import {
+  AccountsStore,
   CashFlowStore,
   CreditCardsStore,
   FinancialSummaryStore,
+  TransactionCategoriesStore,
   TransactionsStore,
 } from "@app/store";
-import categoriesJson from "./categories.json";
 
 @Component({
   selector: "app-form",
@@ -19,16 +20,34 @@ import categoriesJson from "./categories.json";
 export class FormComponent {
   formSubmitted = output<void>();
   type = input.required<"entries" | "exits">();
-  categories = categoriesJson;
 
   formSubmit = inject(FormSubmitService);
   readonly transactionsStore = inject(TransactionsStore);
   readonly financialSummaryStore = inject(FinancialSummaryStore);
   readonly cashFlowStore = inject(CashFlowStore);
   readonly creditCardsStore = inject(CreditCardsStore);
+  readonly accountsStore = inject(AccountsStore);
+  readonly transactionCategoriesStore = inject(TransactionCategoriesStore);
   readonly alertService = inject(AlertService);
 
   form: Signal<FormGroup> = computed(() => this.buildForm());
+
+  /** Accounts a transaction can be posted against. Credit cards have their own flow. */
+  readonly accounts = computed(() =>
+    this.accountsStore
+      .accounts()
+      .filter((account) => account.isActive && account.type !== "credit_card"),
+  );
+
+  readonly creditCards = this.creditCardsStore.creditCards;
+
+  /** Server categories matching the direction of the form. */
+  readonly categoriesForType = computed(() => {
+    const wanted = this.type() === "entries" ? "income" : "expense";
+    return this.transactionCategoriesStore
+      .categories()
+      .filter((category) => category.type === wanted);
+  });
 
   private buildForm() {
     return new FormGroup<TemplateForm>({
@@ -38,6 +57,7 @@ export class FormComponent {
       description: new FormControl("", { nonNullable: true }),
       isCreditPayment: new FormControl(false, { nonNullable: true }),
       creditCardId: new FormControl("", { nonNullable: true }),
+      accountId: new FormControl("", { nonNullable: true }),
     });
   }
 
@@ -49,16 +69,20 @@ export class FormComponent {
     this.submitForm(this.type() === "entries" ? "entry" : "exit");
   }
 
+  /** An expense paid with a credit card is posted against the card's account. */
+  private usesCreditCard(type: "entry" | "exit"): boolean {
+    return type === "exit" && Boolean(this.form().get("isCreditPayment")?.value);
+  }
+
   private handleInvalidForm() {
     if (!this.form().get("category")?.value) {
       this.showCategoryAlert();
     }
-    if (
-      this.type() === "exits" &&
-      this.form().get("isCreditPayment")?.value &&
-      !this.form().get("creditCardId")?.value
-    ) {
+    if (this.usesCreditCard("exit") && !this.form().get("creditCardId")?.value) {
       this.showCreditCardAlert();
+    }
+    if (!this.usesCreditCard("exit") && !this.form().get("accountId")?.value) {
+      this.showAccountAlert();
     }
   }
 
@@ -78,36 +102,53 @@ export class FormComponent {
     });
   }
 
+  private showAccountAlert() {
+    this.alertService.showWarning({
+      feature: this.type() === "entries" ? "entry" : "exit",
+      action: "create",
+      customMessage: "Tienes que agregar una cuenta",
+    });
+  }
+
   private submitForm(type: "entry" | "exit") {
     const formData = this.form().value;
-    const submitObservable =
-      type === "entry"
-        ? this.formSubmit.entrySubmit({
-            amount: formData.amount,
-            category: formData.category,
-            date: formData.date,
-            description: formData.description,
-          })
-        : this.formSubmit.exitSubmit({
-            amount: formData.amount,
-            category: formData.category,
-            date: formData.date,
-            description: formData.description,
-            creditCardId: formData.isCreditPayment ? formData.creditCardId || null : null,
-          });
+    const accountId = this.resolveAccountId(type, formData);
 
-    submitObservable.subscribe({
-      next: (newResourceId) => this.handleSuccess(type, newResourceId),
+    if (!accountId) {
+      this.showAccountAlert();
+      return;
+    }
+
+    const payload: CreateTransactionPayload = {
+      type: type === "entry" ? "income" : "expense",
+      amount: Number(formData.amount),
+      accountId,
+      categoryId: formData.category || undefined,
+      description: formData.description || undefined,
+      occurredAt: formData.date,
+    };
+
+    this.formSubmit.transactionSubmit(payload).subscribe({
+      next: (transaction) => this.handleSuccess(transaction),
       error: () => this.handleError(),
     });
   }
 
-  private handleSuccess(type: "entry" | "exit", resourceId: string) {
+  private resolveAccountId(type: "entry" | "exit", formData: TemplateFormValue): string {
+    if (this.usesCreditCard(type)) {
+      const card = this.creditCards().find((item) => item.id === formData.creditCardId);
+      return card?.accountId ?? "";
+    }
+
+    return formData.accountId ?? "";
+  }
+
+  private handleSuccess(transaction: Transaction) {
     this.alertService.showSuccess({
       feature: this.type() === "entries" ? "entry" : "exit",
       action: "create",
     });
-    this.updateStores(type, resourceId);
+    this.updateStores(transaction);
     this.resetForm();
     this.formSubmitted.emit();
   }
@@ -119,62 +160,42 @@ export class FormComponent {
     });
   }
 
-  private updateStores(type: "entry" | "exit", resourceId: string) {
-    const formData = this.form().value;
+  private updateStores(transaction: Transaction) {
     const currentYear = new Date().getFullYear();
-    const formYear = new Date(formData.date).getFullYear();
-    const formMonth = this.getMonthString(formData.date);
+    const transactionDate = new Date(transaction.occurredAt);
+    const transactionYear = transactionDate.getFullYear();
+    const transactionMonth = (transactionDate.getMonth() + 1).toString().padStart(2, "0");
+    const isEntry = transaction.type === "income";
 
-    if (type === "entry") {
-      this.transactionsStore.addEntry({
-        id: resourceId,
-        amount: formData.amount,
-        category: formData.category,
-        date: formData.date,
-        description: formData.description,
-      });
+    this.transactionsStore.addTransaction(transaction);
+
+    if (transaction.type === "income" || transaction.type === "expense") {
       this.transactionsStore.addRecentTransaction({
-        id: resourceId,
-        type: "income",
-        amount: formData.amount,
-        category: formData.category,
-        date: formData.date,
-        description: formData.description,
+        id: transaction.id,
+        type: transaction.type,
+        amount: transaction.amount,
+        category: transaction.category?.name ?? "Sin categoría",
+        date: transaction.occurredAt.slice(0, 10),
+        description: transaction.description,
+        creditCard: null,
       });
-      if (formYear === currentYear) {
-        this.financialSummaryStore.addSummaryEntry(formData.amount);
-        this.cashFlowStore.addEntryTransaction(formMonth, formData.amount);
-      }
-      return;
     }
 
-    const creditCardId = formData.isCreditPayment ? formData.creditCardId || null : null;
-
-    this.transactionsStore.addExit({
-      id: resourceId,
-      amount: formData.amount,
-      category: formData.category,
-      date: formData.date,
-      description: formData.description,
-      credit_card_id: creditCardId,
-      isCredit: creditCardId ? 1 : 0,
-    });
-    this.transactionsStore.addRecentTransaction({
-      id: resourceId,
-      type: "expense",
-      amount: formData.amount,
-      category: formData.category,
-      date: formData.date,
-      description: formData.description,
-    });
-    if (creditCardId) {
+    if (transaction.affectsLiability) {
       void this.creditCardsStore.updatePurchases();
       void this.creditCardsStore.updateCardTransactions();
     }
-    if (formYear === currentYear) {
-      this.financialSummaryStore.addSummaryExit(formData.amount);
-      this.cashFlowStore.addExitTransaction(formMonth, formData.amount);
+
+    if (transactionYear !== currentYear) return;
+
+    if (isEntry) {
+      this.financialSummaryStore.addSummaryEntry(transaction.amount);
+      this.cashFlowStore.addEntryTransaction(transactionMonth, transaction.amount);
+      return;
     }
+
+    this.financialSummaryStore.addSummaryExit(transaction.amount);
+    this.cashFlowStore.addExitTransaction(transactionMonth, transaction.amount);
   }
 
   private resetForm() {
@@ -185,10 +206,12 @@ export class FormComponent {
       description: "",
       isCreditPayment: false,
       creditCardId: "",
+      accountId: "",
     });
   }
-
-  private getMonthString(date: string) {
-    return (new Date(date).getMonth() + 1).toString().padStart(2, "0");
-  }
 }
+
+/** The value shape produced by `TemplateForm` once every control is read. */
+type TemplateFormValue = {
+  [K in keyof TemplateForm]: TemplateForm[K]["value"];
+};

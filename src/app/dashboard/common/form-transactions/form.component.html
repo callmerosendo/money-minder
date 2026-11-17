@@ -53,19 +53,33 @@
     }
   }
 
+  @if (!form().get("isCreditPayment")?.value) {
+    <div class="mb-5">
+      <label for="account_select" class="mb-2 block">Cuenta</label>
+      @if (accounts().length) {
+        <select
+          formControlName="accountId"
+          name="account_select"
+          id="account_select"
+          class="w-full"
+        >
+          <option value="" selected>Elige una cuenta...</option>
+          @for (account of accounts(); track account.id) {
+            <option [value]="account.id">{{ account.name }}</option>
+          }
+        </select>
+      } @else {
+        <p class="text-danger">No tienes cuentas registradas. Agrega una antes de continuar.</p>
+      }
+    </div>
+  }
+
   <div class="mb-5">
     <label for="underline_select" class="mb-2 block">Categoría</label>
     <select formControlName="category" name="underline_select" id="underline_select" class="w-full">
-      @if (typeOf === "Egreso") {
-        <option value="" selected>Elige una categoría...</option>
-        @for (categorie of categories.Egreso; track $index) {
-          <option value="{{ categorie }}" selected>{{ categorie }}</option>
-        }
-      } @else {
-        <option value="" selected>Elige una categoría...</option>
-        @for (categorie of categories.Ingreso; track $index) {
-          <option value="{{ categorie }}" selected>{{ categorie }}</option>
-        }
+      <option value="">Elige una categoría...</option>
+      @for (categorie of categoriesForType(); track categorie.id) {
+        <option [value]="categorie.id">{{ categorie.name }}</option>
       }
     </select>
   </div>

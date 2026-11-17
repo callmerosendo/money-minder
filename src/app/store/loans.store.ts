@@ -1,13 +1,12 @@
 import { InjectionToken, inject } from "@angular/core";
-import type { EditPayment, Loans, NewPayment } from "@app/models";
+import type { CreateLoanPaymentPayload, LoanListItem, UpdateLoanPaymentPayload } from "@app/models";
 import { ApiCallsService } from "@app/services";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
-import { withEntities } from "@ngrx/signals/entities";
 import { firstValueFrom } from "rxjs";
 import { addNewPayment, calculatePaymentDifference, updateSpecificPayment } from "./loans.utils";
 
 type LoansState = {
-  loans: Loans[];
+  loans: LoanListItem[];
 };
 
 const initialState: LoansState = {
@@ -21,7 +20,6 @@ const LOANS_STATE = new InjectionToken<LoansState>("LoansState", {
 export const LoansStore = signalStore(
   { providedIn: "root" },
   withState(() => inject(LOANS_STATE)),
-  withEntities<LoansState>(),
   withMethods((store, apiCallsService = inject(ApiCallsService)) => ({
     clearLoans(): void {
       patchState(store, { loans: initialState.loans });
@@ -32,29 +30,28 @@ export const LoansStore = signalStore(
       patchState(store, { loans });
     },
 
-    addLoan(newLoan: Loans): void {
+    addLoan(newLoan: LoanListItem): void {
       patchState(store, {
         loans: [newLoan, ...store.loans()],
       });
     },
 
-    updatePayment(editPayment: EditPayment): void {
+    updatePayment(loanId: string, paymentId: string, payment: UpdateLoanPaymentPayload): void {
       patchState(store, {
         loans: store.loans().map((loan) => {
-          if (loan.id !== editPayment.loanId) return loan;
+          if (loan.id !== loanId) return loan;
 
-          const originalPayment = loan.lastFivePayments.find(
-            (payment) => payment.id === editPayment.paymentId,
-          );
+          const originalPayment = loan.lastFivePayments.find((item) => item.id === paymentId);
 
           if (!originalPayment) return loan;
 
-          const difference = calculatePaymentDifference(originalPayment.amount, editPayment.amount);
+          const nextAmount = payment.amount ?? originalPayment.amount;
+          const difference = calculatePaymentDifference(originalPayment.amount, nextAmount);
           const totalPaid = loan.totalPaid + difference;
 
           return {
             ...loan,
-            lastFivePayments: updateSpecificPayment(loan.lastFivePayments, editPayment),
+            lastFivePayments: updateSpecificPayment(loan.lastFivePayments, paymentId, payment),
             totalPaid,
             remaining: Math.max(0, loan.principal - totalPaid),
           };
@@ -62,16 +59,16 @@ export const LoansStore = signalStore(
       });
     },
 
-    addPayment(newPayment: NewPayment): void {
+    addPayment(loanId: string, payment: CreateLoanPaymentPayload): void {
       patchState(store, {
         loans: store.loans().map((loan) => {
-          if (loan.id !== newPayment.loanId) return loan;
+          if (loan.id !== loanId) return loan;
 
-          const totalPaid = loan.totalPaid + newPayment.amount;
+          const totalPaid = loan.totalPaid + payment.amount;
 
           return {
             ...loan,
-            lastFivePayments: addNewPayment(loan.lastFivePayments, newPayment),
+            lastFivePayments: addNewPayment(loan.lastFivePayments, payment),
             totalPaid,
             remaining: Math.max(0, loan.principal - totalPaid),
           };

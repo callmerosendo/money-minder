@@ -1,18 +1,18 @@
 import { Injectable, inject, signal } from "@angular/core";
 import { FormSubmitService } from "@app/services";
-import type { EditPayment, NewPayment } from "@app/models";
+import type { CreateLoanPaymentPayload, UpdateLoanPaymentPayload } from "@app/models";
 
 @Injectable()
 export class PaymentStateService {
   private submitService = inject(FormSubmitService);
   readonly editingPaymentId = signal<string | null>(null);
 
-  addPayment(paymentData: NewPayment) {
-    return this.submitService.addPayment(paymentData);
+  addPayment(loanId: string, paymentData: CreateLoanPaymentPayload) {
+    return this.submitService.addPayment(loanId, paymentData);
   }
 
-  editPayment(editData: EditPayment) {
-    return this.submitService.editPayment(editData);
+  editPayment(loanId: string, paymentId: string, editData: UpdateLoanPaymentPayload) {
+    return this.submitService.editPayment(loanId, paymentId, editData);
   }
 
   toggleEditMode(paymentId: string): void {

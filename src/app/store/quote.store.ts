@@ -1,12 +1,11 @@
 import { InjectionToken, inject } from "@angular/core";
-import type { Quote } from "@app/models";
+import type { DailyPhraseResponse } from "@app/models";
 import { ApiCallsService } from "@app/services";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
-import { withEntities } from "@ngrx/signals/entities";
 import { firstValueFrom } from "rxjs";
 
 type QuoteState = {
-  quote: Quote;
+  quote: DailyPhraseResponse;
 };
 
 const initialState: QuoteState = {
@@ -24,21 +23,20 @@ const QUOTE_STATE = new InjectionToken<QuoteState>("QuoteState", {
 export const QuoteStore = signalStore(
   { providedIn: "root" },
   withState(() => inject(QUOTE_STATE)),
-  withEntities<QuoteState>(),
   withMethods((store, apiCallsService = inject(ApiCallsService)) => ({
     deleteQuote(): void {
       patchState(store, { quote: initialState.quote });
     },
 
     async updateQuote(): Promise<void> {
-      const quote = await firstValueFrom(apiCallsService.getQuote());
+      const quote = (await firstValueFrom(apiCallsService.getQuote())) ?? initialState.quote;
       patchState(store, { quote });
     },
   })),
   withHooks({
     async onInit(store, apiCallsService = inject(ApiCallsService)) {
       try {
-        const quote = await firstValueFrom(apiCallsService.getQuote());
+        const quote = (await firstValueFrom(apiCallsService.getQuote())) ?? initialState.quote;
         patchState(store, { quote });
       } catch (error) {
         console.error("Error fetching quote:", error);

@@ -1,6 +1,7 @@
 import { Component, EventEmitter, type OnInit, Output, input } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import type { EditSaving, Saving } from "@app/models";
+import type { Saving, UpdateSavingPayload } from "@app/models";
+import { moneyToNumber } from "@app/utils";
 
 @Component({
   selector: "app-goal-modal-edit",
@@ -9,23 +10,21 @@ import type { EditSaving, Saving } from "@app/models";
 })
 export class GoalModalEditComponent implements OnInit {
   goal = input.required<Saving>();
-  @Output() save = new EventEmitter<EditSaving>();
+  @Output() save = new EventEmitter<UpdateSavingPayload>();
   @Output() closeModal = new EventEmitter<void>();
-  formEdit: EditSaving = {
-    id: "",
-    newSavingName: "",
-    newTarget: 0,
-    newCurrentAmount: 0,
-    newTargetDate: "",
+  formEdit: UpdateSavingPayload = {
+    name: "",
+    targetAmount: 0,
+    currentAmount: 0,
+    targetDate: "",
   };
 
   ngOnInit() {
     this.formEdit = {
-      id: this.goal().id,
-      newSavingName: this.goal().name,
-      newTarget: this.goal().target_amount,
-      newCurrentAmount: this.goal().current_amount,
-      newTargetDate: this.goal().target_date ?? "",
+      name: this.goal().name,
+      targetAmount: moneyToNumber(this.goal().target_amount),
+      currentAmount: moneyToNumber(this.goal().current_amount),
+      targetDate: this.goal().target_date?.slice(0, 10) ?? "",
     };
   }
 

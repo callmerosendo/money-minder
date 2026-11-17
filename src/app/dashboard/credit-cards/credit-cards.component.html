@@ -89,8 +89,8 @@
               }
             </h2>
             <p class="label mt-1">
-              Corte {{ card.statement_day }} · Pago {{ card.due_day }} · Límite
-              {{ card.credit_limit | currency: "USD" : "symbol" }}
+              Corte {{ card.statementDay }} · Pago {{ card.dueDay }} · Límite
+              {{ card.creditLimit | currency: "USD" : "symbol" }}
             </p>
           </div>
           <div class="flex items-center gap-2">
@@ -157,7 +157,7 @@
                       </td>
                       <td class="py-2">{{ transaction.description }}</td>
                       <td class="num py-2 whitespace-nowrap">
-                        {{ transaction.date | date: "d/MM/y" }}
+                        {{ transaction.occurredAt | date: "d/MM/y" }}
                       </td>
                     </tr>
                   } @empty {
@@ -177,16 +177,16 @@
                 <div class="flex items-baseline justify-between gap-3">
                   <dt class="text-muted">Gastado en el período</dt>
                   <dd class="num stat-figure text-xl">
-                    {{ purchase?.totalSpent ?? 0 | currency }}
+                    {{ purchase?.totalSpent ?? "0.00" | currency }}
                   </dd>
                 </div>
                 <div class="flex items-baseline justify-between gap-3">
                   <dt class="text-muted">Crédito disponible</dt>
-                  <dd class="num">{{ purchase?.availableCredit ?? 0 | currency }}</dd>
+                  <dd class="num">{{ purchase?.availableCredit ?? "0.00" | currency }}</dd>
                 </div>
               </dl>
               <p class="label mt-3">
-                Fecha de pago: {{ card.due_day }}/{{ currentMonth }}/{{ currentYear }}
+                Fecha de pago: {{ card.dueDay }}/{{ currentMonth }}/{{ currentYear }}
               </p>
             </div>
           </div>

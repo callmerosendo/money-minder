@@ -1,12 +1,12 @@
 import { InjectionToken, inject } from "@angular/core";
-import type { TransactionChart } from "@app/models";
+import type { SpecialsCategoryItem } from "@app/models";
 import { ApiCallsService } from "@app/services";
+import { addMoney } from "@app/utils";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
-import { withEntities } from "@ngrx/signals/entities";
 import { firstValueFrom } from "rxjs";
 
 type CategoriesState = {
-  categories: TransactionChart[];
+  categories: SpecialsCategoryItem[];
 };
 
 const initialState: CategoriesState = {
@@ -20,7 +20,6 @@ const CATEGORIES_STATE = new InjectionToken<CategoriesState>("CategoriesState", 
 export const CategoriesStore = signalStore(
   { providedIn: "root" },
   withState(() => inject(CATEGORIES_STATE)),
-  withEntities<CategoriesState>(),
   withMethods((store, apiCallsService = inject(ApiCallsService)) => ({
     clearCategories(): void {
       patchState(store, { categories: initialState.categories });
@@ -37,11 +36,13 @@ export const CategoriesStore = signalStore(
      * @param category - The category to add to the store
      * @returns void - No return, updates the store
      */
-    addTransactionCategory(category: TransactionChart): void {
-      const existingCategory = store.categories().find((cat) => cat.category === category.category);
+    addTransactionCategory(category: SpecialsCategoryItem): void {
+      const existingCategory = store
+        .categories()
+        .find((cat) => cat.categoryName === category.categoryName);
 
       if (existingCategory) {
-        existingCategory.total += category.total;
+        existingCategory.totalAmount = addMoney(existingCategory.totalAmount, category.totalAmount);
         patchState(store, { categories: [...store.categories()] });
       } else {
         patchState(store, { categories: [...store.categories(), category] });

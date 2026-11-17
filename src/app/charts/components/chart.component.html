@@ -1,0 +1,23 @@
+@let chartOptions = options();
+
+<div class="sheet sheet--pad">
+  @if (spec().title) {
+    <h2 class="text-xl">Gráfico tipo "{{ spec().title }}"</h2>
+  }
+  <div class="mt-4">
+    <apx-chart
+      class="block"
+      [series]="chartOptions.series"
+      [chart]="chartOptions.chart"
+      [colors]="chartOptions.colors"
+      [labels]="chartOptions.labels"
+      [stroke]="chartOptions.stroke"
+      [plotOptions]="chartOptions.plotOptions"
+      [dataLabels]="chartOptions.dataLabels"
+      [legend]="chartOptions.legend"
+      [tooltip]="chartOptions.tooltip"
+      [xaxis]="chartOptions.xaxis"
+      [yaxis]="chartOptions.yaxis"
+    />
+  </div>
+</div>

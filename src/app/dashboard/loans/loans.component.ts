@@ -3,7 +3,7 @@ import { Component, type Signal, computed, inject } from "@angular/core";
 import { type FormGroup, ReactiveFormsModule } from "@angular/forms";
 import { Title } from "@angular/platform-browser";
 import { SubmitBttnComponent } from "@app/core";
-import type { EditPayment, LoanDirection, Payments } from "@app/models";
+import type { LoanDirection, LoanPaymentHistoryItem, UpdateLoanPaymentPayload } from "@app/models";
 import {
   AlertService,
   LoansFormService,
@@ -59,12 +59,12 @@ export class LoansComponent {
   handleAddPayment(loanId: string): void {
     if (this.addPaymentForm().invalid) return;
 
-    const paymentData = this.loansForm.getPaymentFormData(this.addPaymentForm(), loanId);
-    this.paymentState.addPayment(paymentData).subscribe({
+    const paymentData = this.loansForm.getPaymentFormData(this.addPaymentForm());
+    this.paymentState.addPayment(loanId, paymentData).subscribe({
       next: () => {
         this.alertService.showSuccess({ feature: "payment", action: "create" });
         this.loansForm.resetForm(this.addPaymentForm());
-        this.loansState.addPayment(paymentData);
+        this.loansState.addPayment(loanId, paymentData);
       },
       error: () => this.alertService.showError({ feature: "payment", action: "create" }),
     });
@@ -86,23 +86,21 @@ export class LoansComponent {
   confirmEditPayment(loanId: string, paymentId: string): void {
     if (this.editPaymentForm().invalid) return;
 
-    const editData: EditPayment = {
-      loanId,
-      paymentId,
-      ...this.loansForm.getEditFormData(this.editPaymentForm()),
-    };
+    const editData: UpdateLoanPaymentPayload = this.loansForm.getEditFormData(
+      this.editPaymentForm(),
+    );
 
-    this.paymentState.editPayment(editData).subscribe({
+    this.paymentState.editPayment(loanId, paymentId, editData).subscribe({
       next: () => {
         this.alertService.showInfo({ feature: "loan", action: "update" });
-        this.loansState.updatePayment(editData);
+        this.loansState.updatePayment(loanId, paymentId, editData);
         this.cancelEdit();
       },
       error: () => this.alertService.showError({ feature: "loan", action: "update" }),
     });
   }
 
-  private findPayment(paymentId: string): Payments | undefined {
+  private findPayment(paymentId: string): LoanPaymentHistoryItem | undefined {
     return this.loans()
       .flatMap((loan) => loan.lastFivePayments)
       .find((payment) => payment.id === paymentId);

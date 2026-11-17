@@ -1,6 +1,6 @@
 import { CurrencyPipe, DatePipe } from "@angular/common";
 import { Component, input } from "@angular/core";
-import type { ReminderRecurrence, ReminderStatus } from "@app/models";
+import type { MoneyString, ReminderRecurrence, ReminderStatus } from "@app/models";
 
 @Component({
   selector: "app-reminders-card",
@@ -9,7 +9,7 @@ import type { ReminderRecurrence, ReminderStatus } from "@app/models";
 })
 export class RemindersCardComponent {
   title = input.required<string>();
-  amount = input<number | null>(null);
+  amount = input<MoneyString | null>(null);
   dueAt = input.required<string>();
   recurrence = input.required<ReminderRecurrence>();
   status = input.required<ReminderStatus>();
