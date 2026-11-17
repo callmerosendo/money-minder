@@ -1,4 +1,4 @@
-import { CurrencyPipe, NgClass } from "@angular/common";
+import { CurrencyPipe } from "@angular/common";
 import { Component, computed, inject, signal } from "@angular/core";
 import { toObservable, toSignal } from "@angular/core/rxjs-interop";
 import { Title } from "@angular/platform-browser";
@@ -15,7 +15,7 @@ const INITIAL_MONTH = `${now.getFullYear()}-${String(now.getMonth() + 1).padStar
 
 @Component({
   selector: "app-analysis",
-  imports: [ChartComponent, NotLoggedComponent, CurrencyPipe, NgClass],
+  imports: [ChartComponent, NotLoggedComponent, CurrencyPipe],
   templateUrl: "./analysis.component.html",
 })
 export default class AnalysisComponent {
