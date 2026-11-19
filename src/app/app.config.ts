@@ -1,5 +1,5 @@
 import { type ApplicationConfig, provideZonelessChangeDetection } from "@angular/core";
-import { provideRouter, withComponentInputBinding } from "@angular/router";
+import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from "@angular/router";
 
 import { provideHttpClient, withInterceptors } from "@angular/common/http";
 import { provideClientHydration, withNoIncrementalHydration } from "@angular/platform-browser";
@@ -11,6 +11,10 @@ export const appConfig: ApplicationConfig = {
     provideClientHydration(withNoIncrementalHydration()),
     provideZonelessChangeDetection(),
     provideHttpClient(withInterceptors([authInterceptor])),
-    provideRouter(routes, withComponentInputBinding()),
+    provideRouter(
+      routes,
+      withComponentInputBinding(),
+      withInMemoryScrolling({ anchorScrolling: "enabled" }),
+    ),
   ],
 };

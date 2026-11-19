@@ -90,6 +90,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import("./dashboard/loans").then((component) => component.LoansComponent),
       },
+      {
+        path: "settings",
+        loadComponent: () =>
+          import("./dashboard/settings").then((component) => component.SettingsComponent),
+      },
     ],
   },
 ];
