@@ -35,6 +35,11 @@
             >Términos y Condiciones</a
           >
         </li>
+        @if (isLogged()) {
+          <li>
+            <a routerLink="/settings" class="nav__link">Ajustes</a>
+          </li>
+        }
         <li class="pt-2 md:pt-0">
           @if (isLogged()) {
             <app-navigation-bttn [text]="'Ir al Dashboard'" [navigateTo]="'/dashboard'" />

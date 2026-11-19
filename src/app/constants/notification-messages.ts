@@ -171,4 +171,21 @@ export const NOTIFICATION_MESSAGES: NotificationMessages = {
       error: "Error al obtener las tarjetas de débito ⚠️",
     },
   },
+  category: {
+    create: {
+      success: "Categoría agregada exitosamente 🏷️",
+      error: "Error al agregar la categoría ❌",
+    },
+    update: {
+      success: "Categoría actualizada exitosamente 🔄",
+      error: "Error al actualizar la categoría ❌",
+    },
+    delete: {
+      success: "Categoría eliminada exitosamente 🗑️",
+      error: "Error al eliminar la categoría ❌",
+    },
+    fetch: {
+      error: "Error al obtener las categorías ⚠️",
+    },
+  },
 } as const;

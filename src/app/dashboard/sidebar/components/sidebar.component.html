@@ -52,6 +52,7 @@
       <ul class="index-list">
         <li>
           <a
+            (click)="toggleSidebar()"
             routerLink="/dashboard"
             routerLinkActive
             ariaCurrentWhenActive="page"
@@ -70,6 +71,7 @@
         </li>
         <li>
           <a
+            (click)="toggleSidebar()"
             routerLink="/entries"
             routerLinkActive
             ariaCurrentWhenActive="page"
@@ -97,6 +99,7 @@
         </li>
         <li>
           <a
+            (click)="toggleSidebar()"
             routerLink="/exits"
             routerLinkActive
             ariaCurrentWhenActive="page"
@@ -113,6 +116,7 @@
         </li>
         <li>
           <a
+            (click)="toggleSidebar()"
             routerLink="/transfers"
             routerLinkActive
             ariaCurrentWhenActive="page"
@@ -138,6 +142,7 @@
         </li>
         <li>
           <a
+            (click)="toggleSidebar()"
             routerLink="/analysis"
             routerLinkActive
             ariaCurrentWhenActive="page"
@@ -165,6 +170,7 @@
       <ul class="index-list">
         <li>
           <a
+            (click)="toggleSidebar()"
             routerLink="/accounts"
             routerLinkActive
             ariaCurrentWhenActive="page"
@@ -191,6 +197,7 @@
         </li>
         <li>
           <a
+            (click)="toggleSidebar()"
             routerLink="/savings"
             routerLinkActive
             ariaCurrentWhenActive="page"
@@ -208,6 +215,7 @@
         </li>
         <li>
           <a
+            (click)="toggleSidebar()"
             routerLink="/reminders"
             routerLinkActive
             ariaCurrentWhenActive="page"
@@ -225,6 +233,7 @@
         </li>
         <li>
           <a
+            (click)="toggleSidebar()"
             routerLink="/credit-cards"
             routerLinkActive
             ariaCurrentWhenActive="page"
@@ -256,6 +265,7 @@
         </li>
         <li>
           <a
+            (click)="toggleSidebar()"
             routerLink="/debit-cards"
             routerLinkActive
             ariaCurrentWhenActive="page"
@@ -286,6 +296,7 @@
         </li>
         <li>
           <a
+            (click)="toggleSidebar()"
             routerLink="/loans"
             routerLinkActive
             ariaCurrentWhenActive="page"
@@ -314,6 +325,38 @@
               <path d="M16 14l0 3" />
             </svg>
             Préstamos
+          </a>
+        </li>
+      </ul>
+
+      <p class="label mb-2 mt-8">Preferencias</p>
+      <ul class="index-list">
+        <li>
+          <a
+            (click)="toggleSidebar()"
+            routerLink="/settings"
+            routerLinkActive
+            ariaCurrentWhenActive="page"
+            [routerLinkActiveOptions]="linkMatch"
+            class="index-link"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="size-5 shrink-0"
+              aria-hidden="true"
+            >
+              <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+              <path
+                d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065z"
+              />
+              <path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" />
+            </svg>
+            Ajustes
           </a>
         </li>
       </ul>
@@ -352,9 +395,6 @@
         </svg>
         Inicio
       </a>
-      <div class="mt-4">
-        <app-theme-toggle />
-      </div>
     </div>
   </div>
 </aside>

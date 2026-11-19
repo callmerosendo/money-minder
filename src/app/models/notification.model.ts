@@ -9,7 +9,8 @@ export type FeatureType =
   | "creditCard"
   | "account"
   | "transfer"
-  | "debitCard";
+  | "debitCard"
+  | "category";
 export type ActionType = "create" | "update" | "delete" | "fetch";
 
 export interface Notification {

@@ -6,7 +6,9 @@ import { API_BASE_URL } from "../constants/api";
 import type {
   Account,
   ArchiveAccountResponse,
+  Category,
   CreateAccountPayload,
+  CreateCategoryPayload,
   CreateCreditCardPayload,
   CreateDebitCardPayload,
   CreateLoanPayload,
@@ -17,19 +19,23 @@ import type {
   CreateTransferPayload,
   CreditCardAccount,
   DebitCard,
+  DeleteCategoryResponse,
   DeleteDebitCardResponse,
   DeleteReminderResponse,
   DeleteSavingResponse,
   HardDeleteAccountResponse,
+  HardDeleteTransactionResponse,
   LoanPaymentRecord,
   LoanRecord,
   Reminder,
   Saving,
   Transaction,
   TransferTransaction,
+  UpdateCategoryPayload,
   UpdateLoanPaymentPayload,
   UpdateReminderPayload,
   UpdateSavingPayload,
+  UpdateTransactionPayload,
 } from "../models";
 
 /**
@@ -52,7 +58,9 @@ export class FormSubmitService {
     } else {
       console.error(`Backend returned code ${error.status}, body was:`, error.error);
     }
-    return throwError(() => new Error("Something bad happened; please try again later."));
+    // Keep the original HttpErrorResponse so callers can inspect status/message
+    // (for example, a foreign-key violation when deleting a category).
+    return throwError(() => error);
   }
 
   /**
@@ -63,6 +71,39 @@ export class FormSubmitService {
   transactionSubmit(payload: CreateTransactionPayload): Observable<Transaction> {
     const url = `${API_BASE_URL}/transactions`;
     return this.http.post<Transaction>(url, payload).pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Corrects an existing income or expense transaction. The backend
+   * recalculates its account movements atomically.
+   *
+   * @param id - The transaction UUID.
+   * @param payload - Only the fields that changed.
+   * @returns An Observable that emits the updated transaction.
+   */
+  transactionUpdate(id: string, payload: UpdateTransactionPayload): Observable<Transaction> {
+    const url = `${API_BASE_URL}/transactions/${id}`;
+    return this.http.patch<Transaction>(url, payload).pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Deletes a transaction.
+   *
+   * By default the API posts a compensating reversal; pass `hard = true` to
+   * remove the ledger entry instead. Reversed transactions cannot be hard
+   * deleted, which is why the UI disables their actions.
+   *
+   * @param id - The transaction UUID.
+   * @param hard - Remove the transaction instead of reversing it.
+   */
+  transactionDelete(
+    id: string,
+    hard = false,
+  ): Observable<Transaction | HardDeleteTransactionResponse> {
+    const url = `${API_BASE_URL}/transactions/${id}`;
+    return this.http
+      .delete<Transaction | HardDeleteTransactionResponse>(url, { params: { hard } })
+      .pipe(catchError(this.handleError));
   }
 
   /**
@@ -148,6 +189,37 @@ export class FormSubmitService {
   deleteReminder(id: string): Observable<DeleteReminderResponse> {
     const url = `${API_BASE_URL}/reminders/${id}`;
     return this.http.delete<DeleteReminderResponse>(url).pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Creates a user-owned category.
+   */
+  createCategory(payload: CreateCategoryPayload): Observable<Category> {
+    const url = `${API_BASE_URL}/categories`;
+    return this.http
+      .post<Category>(url, { name: payload.name, type: payload.type })
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Renames an existing user-owned category.
+   */
+  updateCategory(id: string, payload: UpdateCategoryPayload): Observable<Category> {
+    const url = `${API_BASE_URL}/categories/${id}`;
+    return this.http
+      .patch<Category>(url, {
+        ...(payload.name ? { name: payload.name } : {}),
+        ...(payload.type ? { type: payload.type } : {}),
+      })
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * Deletes a user-owned category. Fails when transactions still reference it.
+   */
+  deleteCategory(id: string): Observable<DeleteCategoryResponse> {
+    const url = `${API_BASE_URL}/categories/${id}`;
+    return this.http.delete<DeleteCategoryResponse>(url).pipe(catchError(this.handleError));
   }
 
   /**

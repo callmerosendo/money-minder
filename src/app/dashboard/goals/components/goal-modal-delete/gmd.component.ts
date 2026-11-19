@@ -12,7 +12,10 @@ export class GoalModalDeleteComponent {
   @Output() delete = new EventEmitter<string>();
   @Output() closeModal = new EventEmitter<void>();
 
-  onDelete() {
+  onDelete(event?: Event) {
+    // The delete form has no formGroup, so Angular does not cancel the native
+    // submit; without this the browser would reload the page.
+    event?.preventDefault();
     this.delete.emit(this.saving().id);
   }
 

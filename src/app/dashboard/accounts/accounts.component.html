@@ -120,7 +120,7 @@
   </section>
 
   @if (archiveTarget(); as account) {
-    <form (submit)="confirmArchive()" class="overlay">
+    <form (submit)="confirmArchive($event)" class="overlay">
       <div
         class="modal"
         role="dialog"

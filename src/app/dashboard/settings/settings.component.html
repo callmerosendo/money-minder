@@ -1,0 +1,238 @@
+<main class="container max-w-3xl py-10">
+  <header class="border-b border-rule pb-6">
+    <h1 class="text-4xl">Ajustes</h1>
+    <p class="lead mt-3 max-w-[48ch] text-ink-2">
+      Personaliza la apariencia de la aplicación y administra tus categorías de ingresos y gastos.
+    </p>
+  </header>
+
+  <section class="mt-8" aria-labelledby="appearance-heading">
+    <h2 id="appearance-heading" class="text-xl">Apariencia</h2>
+    <div class="well mt-4 flex flex-wrap items-center justify-between gap-4 p-6">
+      <div>
+        <p class="font-medium">Tema</p>
+        <p class="mt-1 text-sm text-ink-2">Cambia entre el modo claro y el modo oscuro.</p>
+      </div>
+      <app-theme-toggle />
+    </div>
+  </section>
+
+  <section id="categories" class="mt-10 scroll-mt-24" aria-labelledby="categories-heading">
+    <h2 id="categories-heading" class="text-xl">Categorías</h2>
+    <p class="mt-2 max-w-[60ch] text-ink-2">
+      Las categorías se guardan en tu cuenta y se usan al registrar ingresos y gastos.
+    </p>
+
+    <div
+      class="mt-5 flex flex-wrap gap-2 border-b border-rule pb-4"
+      role="tablist"
+      aria-label="Tipo de categoría"
+    >
+      <button
+        type="button"
+        id="categories-tab-expense"
+        role="tab"
+        class="btn"
+        aria-controls="categories-panel"
+        [attr.aria-selected]="activeType() === 'expense'"
+        [class.btn--primary]="activeType() === 'expense'"
+        [class.btn--quiet]="activeType() !== 'expense'"
+        (click)="setActiveType('expense')"
+      >
+        Gastos
+      </button>
+      <button
+        type="button"
+        id="categories-tab-income"
+        role="tab"
+        class="btn"
+        aria-controls="categories-panel"
+        [attr.aria-selected]="activeType() === 'income'"
+        [class.btn--primary]="activeType() === 'income'"
+        [class.btn--quiet]="activeType() !== 'income'"
+        (click)="setActiveType('income')"
+      >
+        Ingresos
+      </button>
+    </div>
+
+    <div
+      id="categories-panel"
+      role="tabpanel"
+      class="mt-5"
+      [attr.aria-labelledby]="'categories-tab-' + activeType()"
+    >
+      <form
+        [formGroup]="addForm"
+        (submit)="addCategory()"
+        class="flex flex-col gap-3 sm:flex-row sm:items-end"
+      >
+        <div class="flex-1">
+          <label for="new-category-name" class="label mb-1 block">
+            Nueva categoría de {{ activeTypeLabel() }}
+          </label>
+          <input
+            id="new-category-name"
+            formControlName="name"
+            type="text"
+            maxlength="100"
+            placeholder="Ej. Supermercado"
+            required
+            class="w-full"
+          />
+        </div>
+        <button type="submit" class="btn btn--primary" [disabled]="store.isSaving()">
+          Agregar
+        </button>
+      </form>
+
+      @if (store.isLoading() && !categoriesForType().length) {
+        <p class="mt-6 text-muted">Cargando categorías...</p>
+      } @else if (categoriesForType().length) {
+        <ul class="mt-6 rule-list" aria-label="Categorías de {{ activeTypeLabel() }}">
+          @for (category of categoriesForType(); track category.id) {
+            <li>
+              @if (editingCategory()?.id === category.id) {
+                <form (submit)="saveRename($event)" class="flex flex-wrap items-end gap-2 py-1">
+                  <div class="min-w-[12rem] flex-1">
+                    <label for="rename-category-name" class="label mb-1 block">
+                      Nuevo nombre
+                    </label>
+                    <input
+                      id="rename-category-name"
+                      [formControl]="renameControl"
+                      type="text"
+                      maxlength="100"
+                      required
+                      class="w-full"
+                    />
+                  </div>
+                  <button type="submit" class="btn btn--primary" [disabled]="store.isSaving()">
+                    Guardar
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn--quiet"
+                    [disabled]="store.isSaving()"
+                    (click)="cancelRename()"
+                  >
+                    Cancelar
+                  </button>
+                </form>
+              } @else {
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                  <div class="min-w-0">
+                    <p class="truncate">{{ category.name }}</p>
+                    @if (category.user_id === null) {
+                      <p class="label mt-1">Predeterminada</p>
+                    }
+                  </div>
+
+                  @if (category.user_id) {
+                    <div class="flex shrink-0 gap-2">
+                      <button
+                        type="button"
+                        class="btn btn--quiet"
+                        [disabled]="store.isSaving()"
+                        (click)="startRename(category)"
+                      >
+                        Renombrar
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn--danger"
+                        [disabled]="store.isSaving()"
+                        (click)="openDelete(category)"
+                      >
+                        Eliminar
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
+            </li>
+          }
+        </ul>
+      } @else {
+        <div class="well mt-6 p-6">
+          <p class="text-ink-2">Todavía no tienes categorías de {{ activeTypeLabel() }}.</p>
+
+          @if (store.error(); as error) {
+            <p class="mt-2 text-sm text-danger">{{ error }}</p>
+          }
+
+          <div class="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              class="btn btn--quiet"
+              [disabled]="store.isSeeding() || store.isSaving()"
+              (click)="importDefaults()"
+            >
+              {{ store.isSeeding() ? "Importando..." : "Importar predeterminadas" }}
+            </button>
+            @if (store.error()) {
+              <button
+                type="button"
+                class="btn btn--quiet"
+                [disabled]="store.isLoading()"
+                (click)="reload()"
+              >
+                Reintentar
+              </button>
+            }
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <section class="mt-10" aria-labelledby="language-heading">
+    <h2 id="language-heading" class="text-xl">Idioma</h2>
+    <div class="well mt-4 p-6">
+      <label for="language" class="label mb-1 block">Idioma de la interfaz</label>
+      <select id="language" class="w-full" disabled aria-describedby="language-help">
+        <option>Español</option>
+      </select>
+      <p id="language-help" class="mt-2 text-sm text-muted">
+        Próximamente. Por ahora la aplicación solo está disponible en español.
+      </p>
+    </div>
+  </section>
+
+  @if (deleteTarget(); as category) {
+    <form (submit)="confirmDelete($event)" class="overlay">
+      <div
+        class="modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="delete-category-title"
+        aria-describedby="delete-category-desc"
+      >
+        <div class="modal__head">
+          <p class="modal__eyebrow">Categoría</p>
+          <h2 id="delete-category-title" class="text-xl">
+            ¿Eliminar la categoría {{ category.name }}?
+          </h2>
+        </div>
+        <p id="delete-category-desc" class="text-ink-2">
+          Esta acción no se puede deshacer. No puedes eliminar una categoría que ya tenga
+          transacciones asociadas.
+        </p>
+        <div class="modal__actions">
+          <button type="submit" class="btn btn--danger" [disabled]="store.isSaving()">
+            Eliminar
+          </button>
+          <button
+            type="button"
+            class="btn btn--quiet"
+            [disabled]="store.isSaving()"
+            (click)="closeDelete()"
+            autofocus
+          >
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </form>
+  }
+</main>

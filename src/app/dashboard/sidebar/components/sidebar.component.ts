@@ -3,20 +3,12 @@ import { Component, inject } from "@angular/core";
 import { Router, RouterLink, RouterLinkActive } from "@angular/router";
 
 import { BtnLoginComponent } from "@app/btn-login";
-import { ThemeToggleComponent } from "@app/core";
 import { AuthCacheService } from "@app/services";
 
 @Component({
   selector: "app-sidebar",
   templateUrl: "./sidebar.component.html",
-  imports: [
-    NgOptimizedImage,
-    RouterLink,
-    RouterLinkActive,
-    ThemeToggleComponent,
-    BtnLoginComponent,
-    CommonModule,
-  ],
+  imports: [NgOptimizedImage, RouterLink, RouterLinkActive, BtnLoginComponent, CommonModule],
 })
 export class SidebarComponent {
   private readonly authCacheService;

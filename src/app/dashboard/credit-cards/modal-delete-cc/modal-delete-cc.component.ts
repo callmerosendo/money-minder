@@ -15,7 +15,10 @@ export class ModalDeleteCcComponent {
     this.close.emit();
   }
 
-  onDelete() {
+  onDelete(event?: Event) {
+    // The delete form has no formGroup, so Angular does not cancel the native
+    // submit; without this the browser would reload the page.
+    event?.preventDefault();
     this.delete.emit(this.creditCard().id);
   }
 

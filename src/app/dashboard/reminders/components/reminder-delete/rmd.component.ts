@@ -12,7 +12,10 @@ export class ReminderDeleteComponent {
   delete = output<string>();
   close = output<void>();
 
-  onDelete() {
+  onDelete(event?: Event) {
+    // The delete form has no formGroup, so Angular does not cancel the native
+    // submit; without this the browser would reload the page.
+    event?.preventDefault();
     this.delete.emit(this.reminder().id);
   }
 
