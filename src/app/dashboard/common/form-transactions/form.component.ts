@@ -1,30 +1,36 @@
-import { Component, type Signal, computed, inject, input, output } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  type Signal,
+  computed,
+  inject,
+  input,
+  output,
+} from "@angular/core";
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import { RouterLink } from "@angular/router";
 import { SubmitBttnComponent } from "@app/core";
-import type { CreateTransactionPayload, TemplateForm, Transaction } from "@app/models";
+import type { CreateTransactionPayload, TemplateForm } from "@app/models";
 import { AlertService, FormSubmitService } from "@app/services";
 import {
   AccountsStore,
-  CashFlowStore,
   CreditCardsStore,
-  FinancialSummaryStore,
+  LedgerRefreshService,
   TransactionCategoriesStore,
-  TransactionsStore,
 } from "@app/store";
 
 @Component({
   selector: "app-form",
   templateUrl: "./form.component.html",
-  imports: [ReactiveFormsModule, SubmitBttnComponent],
+  imports: [ReactiveFormsModule, SubmitBttnComponent, RouterLink],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FormComponent {
   formSubmitted = output<void>();
   type = input.required<"entries" | "exits">();
 
   formSubmit = inject(FormSubmitService);
-  readonly transactionsStore = inject(TransactionsStore);
-  readonly financialSummaryStore = inject(FinancialSummaryStore);
-  readonly cashFlowStore = inject(CashFlowStore);
+  readonly ledgerRefresh = inject(LedgerRefreshService);
   readonly creditCardsStore = inject(CreditCardsStore);
   readonly accountsStore = inject(AccountsStore);
   readonly transactionCategoriesStore = inject(TransactionCategoriesStore);
@@ -49,11 +55,46 @@ export class FormComponent {
       .filter((category) => category.type === wanted);
   });
 
+  /** Creates the default categories when this type has none yet. */
+  async importDefaultCategories(): Promise<void> {
+    const created = await this.transactionCategoriesStore.seedDefaultCategories();
+    const error = this.transactionCategoriesStore.error();
+
+    if (error) {
+      this.alertService.showError({
+        feature: "category",
+        action: "create",
+        customMessage: error,
+      });
+      return;
+    }
+
+    if (created > 0) {
+      this.alertService.showSuccess({
+        feature: "category",
+        action: "create",
+        customMessage: `Se importaron ${created} categorías predeterminadas.`,
+      });
+      return;
+    }
+
+    this.alertService.showInfo({
+      feature: "category",
+      action: "create",
+      customMessage: "Las categorías predeterminadas ya existen.",
+    });
+  }
+
+  reloadCategories(): void {
+    void this.transactionCategoriesStore.loadCategories();
+  }
+
   private buildForm() {
     return new FormGroup<TemplateForm>({
       date: new FormControl("", { nonNullable: true, validators: [Validators.required] }),
       amount: new FormControl(0, { nonNullable: true, validators: [Validators.required] }),
-      category: new FormControl("", { nonNullable: true, validators: [Validators.required] }),
+      // The API accepts income/expense transactions without a category.
+      category: new FormControl("", { nonNullable: true }),
       description: new FormControl("", { nonNullable: true }),
       isCreditPayment: new FormControl(false, { nonNullable: true }),
       creditCardId: new FormControl("", { nonNullable: true }),
@@ -75,23 +116,12 @@ export class FormComponent {
   }
 
   private handleInvalidForm() {
-    if (!this.form().get("category")?.value) {
-      this.showCategoryAlert();
-    }
     if (this.usesCreditCard("exit") && !this.form().get("creditCardId")?.value) {
       this.showCreditCardAlert();
     }
     if (!this.usesCreditCard("exit") && !this.form().get("accountId")?.value) {
       this.showAccountAlert();
     }
-  }
-
-  private showCategoryAlert() {
-    this.alertService.showWarning({
-      feature: this.type() === "entries" ? "entry" : "exit",
-      action: "create",
-      customMessage: "Tienes que agregar una categoría",
-    });
   }
 
   private showCreditCardAlert() {
@@ -129,7 +159,7 @@ export class FormComponent {
     };
 
     this.formSubmit.transactionSubmit(payload).subscribe({
-      next: (transaction) => this.handleSuccess(transaction),
+      next: () => this.handleSuccess(),
       error: () => this.handleError(),
     });
   }
@@ -143,12 +173,12 @@ export class FormComponent {
     return formData.accountId ?? "";
   }
 
-  private handleSuccess(transaction: Transaction) {
+  private handleSuccess() {
     this.alertService.showSuccess({
       feature: this.type() === "entries" ? "entry" : "exit",
       action: "create",
     });
-    this.updateStores(transaction);
+    void this.ledgerRefresh.refreshAll();
     this.resetForm();
     this.formSubmitted.emit();
   }
@@ -158,44 +188,6 @@ export class FormComponent {
       feature: this.type() === "entries" ? "entry" : "exit",
       action: "fetch",
     });
-  }
-
-  private updateStores(transaction: Transaction) {
-    const currentYear = new Date().getFullYear();
-    const transactionDate = new Date(transaction.occurredAt);
-    const transactionYear = transactionDate.getFullYear();
-    const transactionMonth = (transactionDate.getMonth() + 1).toString().padStart(2, "0");
-    const isEntry = transaction.type === "income";
-
-    this.transactionsStore.addTransaction(transaction);
-
-    if (transaction.type === "income" || transaction.type === "expense") {
-      this.transactionsStore.addRecentTransaction({
-        id: transaction.id,
-        type: transaction.type,
-        amount: transaction.amount,
-        category: transaction.category?.name ?? "Sin categoría",
-        date: transaction.occurredAt.slice(0, 10),
-        description: transaction.description,
-        creditCard: null,
-      });
-    }
-
-    if (transaction.affectsLiability) {
-      void this.creditCardsStore.updatePurchases();
-      void this.creditCardsStore.updateCardTransactions();
-    }
-
-    if (transactionYear !== currentYear) return;
-
-    if (isEntry) {
-      this.financialSummaryStore.addSummaryEntry(transaction.amount);
-      this.cashFlowStore.addEntryTransaction(transactionMonth, transaction.amount);
-      return;
-    }
-
-    this.financialSummaryStore.addSummaryExit(transaction.amount);
-    this.cashFlowStore.addExitTransaction(transactionMonth, transaction.amount);
   }
 
   private resetForm() {

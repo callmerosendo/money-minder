@@ -75,13 +75,66 @@
   }
 
   <div class="mb-5">
-    <label for="underline_select" class="mb-2 block">Categoría</label>
-    <select formControlName="category" name="underline_select" id="underline_select" class="w-full">
-      <option value="">Elige una categoría...</option>
-      @for (categorie of categoriesForType(); track categorie.id) {
-        <option [value]="categorie.id">{{ categorie.name }}</option>
-      }
-    </select>
+    <label for="underline_select" class="mb-2 block">
+      Categoría <span class="text-muted">(opcional)</span>
+    </label>
+
+    @if (transactionCategoriesStore.isLoading() && !categoriesForType().length) {
+      <p class="text-muted">Cargando categorías...</p>
+    } @else if (categoriesForType().length) {
+      <select
+        formControlName="category"
+        name="underline_select"
+        id="underline_select"
+        class="w-full"
+      >
+        <option value="">Sin categoría</option>
+        @for (categorie of categoriesForType(); track categorie.id) {
+          <option [value]="categorie.id">{{ categorie.name }}</option>
+        }
+      </select>
+    } @else {
+      <div class="well p-4">
+        <p class="text-ink-2">Todavía no tienes categorías de {{ typeOf.toLowerCase() }}.</p>
+        <p class="mt-1 text-sm text-muted">
+          Puedes registrar la transacción sin categoría o importar las predeterminadas.
+        </p>
+
+        @if (transactionCategoriesStore.error(); as error) {
+          <p class="mt-2 text-sm text-danger">{{ error }}</p>
+        }
+
+        <div class="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="btn btn--quiet"
+            [disabled]="
+              transactionCategoriesStore.isSeeding() || transactionCategoriesStore.isSaving()
+            "
+            (click)="importDefaultCategories()"
+          >
+            {{
+              transactionCategoriesStore.isSeeding()
+                ? "Importando..."
+                : "Importar categorías predeterminadas"
+            }}
+          </button>
+          <a routerLink="/settings" fragment="categories" class="btn btn--quiet">
+            Configurar categorías
+          </a>
+          @if (transactionCategoriesStore.error()) {
+            <button
+              type="button"
+              class="btn btn--quiet"
+              [disabled]="transactionCategoriesStore.isLoading()"
+              (click)="reloadCategories()"
+            >
+              Reintentar
+            </button>
+          }
+        </div>
+      </div>
+    }
   </div>
 
   <div class="mb-5">
