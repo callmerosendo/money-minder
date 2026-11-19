@@ -9,6 +9,9 @@
           @if (type() === "exits") {
             · {{ t.affectsLiability ? "Tarjeta" : "Efectivo" }}
           }
+          @if (t.reversed) {
+            · <span class="label text-danger">Revertida</span>
+          }
         </p>
       </div>
 
@@ -16,13 +19,13 @@
         {{ t.amount | currency: "USD" : "symbol" }}
       </p>
 
-      <!-- TODO: wire up edit/delete -->
       <div class="flex shrink-0 gap-1">
         <button
           type="button"
-          disabled
-          aria-label="Editar"
-          title="Editar"
+          [disabled]="t.reversed || isSaving()"
+          [attr.aria-label]="t.reversed ? 'La transacción está revertida' : 'Editar'"
+          [attr.title]="t.reversed ? 'La transacción está revertida' : 'Editar'"
+          (click)="openEdit(t)"
           class="rounded p-1.5 text-ink-2 hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <svg
@@ -41,9 +44,10 @@
         </button>
         <button
           type="button"
-          disabled
-          aria-label="Eliminar"
-          title="Eliminar"
+          [disabled]="t.reversed || isSaving()"
+          [attr.aria-label]="t.reversed ? 'La transacción está revertida' : 'Eliminar'"
+          [attr.title]="t.reversed ? 'La transacción está revertida' : 'Eliminar'"
+          (click)="openDelete(t)"
           class="rounded p-1.5 text-ink-2 hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-40"
         >
           <svg
@@ -67,3 +71,22 @@
     <li class="py-6 text-center text-muted">Sin registros</li>
   }
 </ul>
+
+@if (editingTransaction(); as transaction) {
+  <app-modal-edit-transaction
+    [transaction]="transaction"
+    [categories]="categoriesForEdit()"
+    [saving]="isSaving()"
+    (save)="saveEdit($event)"
+    (close)="closeEdit()"
+  />
+}
+
+@if (deletingTransaction(); as transaction) {
+  <app-modal-delete-transaction
+    [transaction]="transaction"
+    [deleting]="isSaving()"
+    (confirm)="confirmDelete()"
+    (close)="closeDelete()"
+  />
+}

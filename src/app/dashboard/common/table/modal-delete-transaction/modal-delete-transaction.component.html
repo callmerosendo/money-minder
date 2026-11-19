@@ -1,0 +1,41 @@
+<form (submit)="onDelete($event)" class="overlay">
+  <div
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="delete-transaction-title"
+    aria-describedby="delete-transaction-desc"
+  >
+    <div class="modal__head">
+      <p class="modal__eyebrow">
+        {{ transaction().type === "income" ? "Ingreso" : "Egreso" }}
+      </p>
+      <h2 id="delete-transaction-title" class="text-xl">¿Eliminar esta transacción?</h2>
+    </div>
+
+    <div id="delete-transaction-desc" class="space-y-1 text-ink-2">
+      <p>
+        {{ transaction().description || transaction().category?.name || "Sin descripción" }} ·
+        <span class="num">{{ transaction().amount | currency: "USD" : "symbol" }}</span>
+      </p>
+      <p class="text-sm">
+        Esta acción no se puede deshacer. El saldo de la cuenta se recalculará automáticamente.
+      </p>
+    </div>
+
+    <div class="modal__actions">
+      <button type="submit" class="btn btn--danger" [disabled]="deleting()">
+        {{ deleting() ? "Eliminando..." : "Eliminar" }}
+      </button>
+      <button
+        type="button"
+        (click)="onClose()"
+        class="btn btn--quiet"
+        [disabled]="deleting()"
+        autofocus
+      >
+        Cancelar
+      </button>
+    </div>
+  </div>
+</form>

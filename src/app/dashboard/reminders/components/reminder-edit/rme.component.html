@@ -1,4 +1,7 @@
-<form (submit)="onSave()" class="overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+<form
+  (submit)="onSave($event)"
+  class="overlay fixed inset-0 z-50 flex items-center justify-center p-4"
+>
   <div class="sheet w-full max-w-lg p-6">
     <h2 class="mb-4 text-xl">Editar recordatorio</h2>
     <div class="mb-4">

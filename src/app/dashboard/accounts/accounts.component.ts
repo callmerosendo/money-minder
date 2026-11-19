@@ -127,7 +127,11 @@ export class AccountsComponent {
     if (this.archiveTarget()) this.closeArchive();
   }
 
-  confirmArchive(): void {
+  confirmArchive(event?: Event): void {
+    // The archive form has no formGroup, so Angular does not cancel the native
+    // submit; without this the browser would reload the page.
+    event?.preventDefault();
+
     const account = this.archiveTarget();
 
     if (!account) return;

@@ -102,7 +102,7 @@
   </section>
 
   @if (deleteTarget(); as card) {
-    <form (submit)="confirmDelete()" class="overlay">
+    <form (submit)="confirmDelete($event)" class="overlay">
       <div
         class="modal"
         role="dialog"

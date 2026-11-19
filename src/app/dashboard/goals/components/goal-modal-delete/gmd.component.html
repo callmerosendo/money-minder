@@ -1,4 +1,7 @@
-<form (submit)="onDelete()" class="overlay fixed inset-0 z-50 flex items-center justify-center p-4">
+<form
+  (submit)="onDelete($event)"
+  class="overlay fixed inset-0 z-50 flex items-center justify-center p-4"
+>
   <div class="sheet w-full max-w-lg p-6">
     <h2 class="text-xl">¿Eliminar el objetivo de ahorro "{{ saving().name }}"?</h2>
     <p class="mt-2 text-ink-2">Esta acción no se puede deshacer.</p>

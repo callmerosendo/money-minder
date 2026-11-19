@@ -106,7 +106,11 @@ export class DebitCardsComponent {
     if (this.deleteTarget()) this.closeDelete();
   }
 
-  confirmDelete(): void {
+  confirmDelete(event?: Event): void {
+    // The delete form has no formGroup, so Angular does not cancel the native
+    // submit; without this the browser would reload the page.
+    event?.preventDefault();
+
     const card = this.deleteTarget();
 
     if (!card) return;
