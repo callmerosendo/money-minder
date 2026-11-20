@@ -9,9 +9,14 @@ import {
   signal,
 } from "@angular/core";
 
-import type { Transaction, UpdateTransactionPayload } from "@app/models";
+import type { Account, Transaction, UpdateTransactionPayload } from "@app/models";
 import { AlertService, FormSubmitService } from "@app/services";
-import { LedgerRefreshService, TransactionCategoriesStore, TransactionsStore } from "@app/store";
+import {
+  AccountsStore,
+  LedgerRefreshService,
+  TransactionCategoriesStore,
+  TransactionsStore,
+} from "@app/store";
 import { extractApiErrorMessage } from "@app/utils";
 
 import { ModalDeleteTransactionComponent } from "./modal-delete-transaction/modal-delete-transaction.component";
@@ -27,6 +32,7 @@ export class TableComponent {
   type = input.required<"entries" | "exits">();
 
   readonly store = inject(TransactionsStore);
+  private readonly accountsStore = inject(AccountsStore);
   private readonly categoriesStore = inject(TransactionCategoriesStore);
   private readonly formSubmit = inject(FormSubmitService);
   private readonly alertService = inject(AlertService);
@@ -44,6 +50,16 @@ export class TableComponent {
   readonly feature = computed<"entry" | "exit">(() =>
     this.type() === "entries" ? "entry" : "exit",
   );
+
+  /** Active accounts the edited transaction can be moved to. */
+  readonly activeAccounts = computed(() => {
+    const rank = (account: Account) => (account.type === "credit_card" ? 1 : 0);
+
+    return this.accountsStore
+      .accounts()
+      .filter((account) => account.isActive)
+      .sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
+  });
 
   /** Categories that can be attached to the transaction being edited. */
   readonly categoriesForEdit = computed(() => {

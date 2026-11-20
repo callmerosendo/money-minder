@@ -76,6 +76,7 @@
   <app-modal-edit-transaction
     [transaction]="transaction"
     [categories]="categoriesForEdit()"
+    [accounts]="activeAccounts()"
     [saving]="isSaving()"
     (save)="saveEdit($event)"
     (close)="closeEdit()"
