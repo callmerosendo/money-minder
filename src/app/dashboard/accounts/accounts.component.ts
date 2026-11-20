@@ -22,7 +22,7 @@ interface AccountForm {
   imports: [ReactiveFormsModule, SubmitBttnComponent, CurrencyPipe, RouterLink, DatePipe],
   templateUrl: "./accounts.component.html",
 })
-export class AccountsComponent {
+export default class AccountsComponent {
   private readonly formSubmit = inject(FormSubmitService);
   private readonly title = inject(Title);
   readonly store = inject(AccountsStore);

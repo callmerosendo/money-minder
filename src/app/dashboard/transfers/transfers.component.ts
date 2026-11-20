@@ -36,7 +36,7 @@ interface TransferForm {
   imports: [ReactiveFormsModule, SubmitBttnComponent, CurrencyPipe, DatePipe, RouterLink],
   templateUrl: "./transfers.component.html",
 })
-export class TransfersComponent {
+export default class TransfersComponent {
   private readonly formSubmit = inject(FormSubmitService);
   private readonly title = inject(Title);
   private readonly accountsStore = inject(AccountsStore);

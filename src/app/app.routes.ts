@@ -1,35 +1,14 @@
-import { isPlatformBrowser } from "@angular/common";
-import { Injectable, PLATFORM_ID, inject } from "@angular/core";
-import { type CanActivateChild, Router, type Routes } from "@angular/router";
-
+import type { Routes } from "@angular/router";
 import { HomeComponent } from "./home";
 import { MainComponent } from "./layouts/Main.component";
-import { AuthCacheService } from "./services/auth-cache.service";
-
-@Injectable({
-  providedIn: "root",
-})
-class DashboardGuard implements CanActivateChild {
-  private readonly auth = inject(AuthCacheService);
-  private readonly router = inject(Router);
-  private readonly platformId = inject(PLATFORM_ID);
-
-  async canActivateChild() {
-    // The server has no access to the browser session cookie, so the guard
-    // defers the decision to the client.
-    if (!isPlatformBrowser(this.platformId)) return true;
-
-    const user = await this.auth.ensureSession();
-    return user ? true : this.router.createUrlTree(["/login"]);
-  }
-}
+import DashboardGuard from "./guards/dashboard.guard";
 
 export const routes: Routes = [
   {
     path: "",
     component: MainComponent,
     children: [
-      { path: "", component: HomeComponent },
+      { path: "", pathMatch: "full", component: HomeComponent },
       {
         path: "login",
         loadComponent: () => import("./login/components/login.component"),
@@ -38,66 +17,8 @@ export const routes: Routes = [
   },
   {
     path: "",
-    loadComponent: () =>
-      import("./layouts/Dashboard.component").then(
-        (component) => component.DashboardLayoutComponent,
-      ),
     canActivateChild: [DashboardGuard],
-    children: [
-      {
-        path: "dashboard",
-        loadComponent: () => import("./dashboard/dashboard/components/dashboard.component"),
-      },
-      {
-        path: "accounts",
-        loadComponent: () =>
-          import("./dashboard/accounts").then((component) => component.AccountsComponent),
-      },
-      {
-        path: "entries",
-        loadComponent: () => import("./dashboard/entries/components/entries.component"),
-      },
-      {
-        path: "exits",
-        loadComponent: () => import("./dashboard/exits/components/exits.component"),
-      },
-      {
-        path: "transfers",
-        loadComponent: () =>
-          import("./dashboard/transfers").then((component) => component.TransfersComponent),
-      },
-      {
-        path: "analysis",
-        loadComponent: () => import("./dashboard/analysis/components/analysis.component"),
-      },
-      {
-        path: "savings",
-        loadComponent: () => import("./dashboard/goals/components/goals.component"),
-      },
-      {
-        path: "reminders",
-        loadComponent: () => import("./dashboard/reminders/components/reminder.component"),
-      },
-      {
-        path: "credit-cards",
-        loadComponent: () =>
-          import("./dashboard/credit-cards").then((component) => component.CreditCardsComponent),
-      },
-      {
-        path: "debit-cards",
-        loadComponent: () =>
-          import("./dashboard/debit-cards").then((component) => component.DebitCardsComponent),
-      },
-      {
-        path: "loans",
-        loadComponent: () =>
-          import("./dashboard/loans").then((component) => component.LoansComponent),
-      },
-      {
-        path: "settings",
-        loadComponent: () =>
-          import("./dashboard/settings").then((component) => component.SettingsComponent),
-      },
-    ],
+    loadComponent: () => import("./layouts/Dashboard.component"),
+    loadChildren: () => import("./dashboard/dashboard.routes").then((m) => m.DASHBOARD_ROUTES),
   },
 ];

@@ -20,7 +20,7 @@ import { TransactionCategoriesStore } from "@app/store";
   imports: [ReactiveFormsModule, ThemeToggleComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SettingsComponent {
+export default class SettingsComponent {
   private readonly title = inject(Title);
   readonly store = inject(TransactionCategoriesStore);
   readonly alertService = inject(AlertService);

@@ -18,7 +18,7 @@ import {
   templateUrl: "./loans.component.html",
   providers: [LoansFormService, LoansStateService, PaymentStateService],
 })
-export class LoansComponent {
+export default class LoansComponent {
   private readonly titleService = inject(Title);
   private readonly loansForm = inject(LoansFormService);
   private readonly loansState = inject(LoansStateService);

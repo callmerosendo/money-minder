@@ -10,4 +10,4 @@ import { SidebarComponent } from "../dashboard/sidebar";
   `,
   imports: [RouterOutlet, SidebarComponent],
 })
-export class DashboardLayoutComponent {}
+export default class DashboardLayoutComponent {}

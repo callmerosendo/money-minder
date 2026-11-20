@@ -20,7 +20,7 @@ interface DebitCardForm {
   imports: [ReactiveFormsModule, SubmitBttnComponent, RouterLink],
   templateUrl: "./debit-cards.component.html",
 })
-export class DebitCardsComponent {
+export default class DebitCardsComponent {
   private readonly formSubmit = inject(FormSubmitService);
   private readonly title = inject(Title);
   private readonly accountsStore = inject(AccountsStore);

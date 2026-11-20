@@ -28,7 +28,7 @@ interface TemplateFormCC {
   ],
   templateUrl: "./credit-cards.component.html",
 })
-export class CreditCardsComponent {
+export default class CreditCardsComponent {
   private readonly formSubmit = inject(FormSubmitService);
   private readonly title = inject(Title);
   readonly store = inject(CreditCardsStore);
