@@ -26,7 +26,7 @@
           [attr.aria-label]="t.reversed ? 'La transacción está revertida' : 'Editar'"
           [attr.title]="t.reversed ? 'La transacción está revertida' : 'Editar'"
           (click)="openEdit(t)"
-          class="rounded p-1.5 text-ink-2 hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-40"
+          class="rounded p-1.5 text-ink-2 hover:bg-black/5 cursor-pointer"
         >
           <svg
             class="size-4"
@@ -48,7 +48,7 @@
           [attr.aria-label]="t.reversed ? 'La transacción está revertida' : 'Eliminar'"
           [attr.title]="t.reversed ? 'La transacción está revertida' : 'Eliminar'"
           (click)="openDelete(t)"
-          class="rounded p-1.5 text-ink-2 hover:bg-black/5 disabled:cursor-not-allowed disabled:opacity-40"
+          class="rounded p-1.5 text-ink-2 hover:bg-black/5 cursor-pointer"
         >
           <svg
             class="size-4"
