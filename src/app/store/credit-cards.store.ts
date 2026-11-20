@@ -1,6 +1,7 @@
 import { inject, InjectionToken } from "@angular/core";
 import type { CreditCardAccount, CreditCardPurchasesSummary, Transaction } from "@app/models";
 import { ApiCallsService } from "@app/services";
+import { isBrowserPlatform } from "@app/utils";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
 import { firstValueFrom } from "rxjs";
 
@@ -75,6 +76,8 @@ export const CreditCardsStore = signalStore(
   })),
   withHooks({
     async onInit(store, apiCallsService = inject(ApiCallsService)) {
+      if (!isBrowserPlatform()) return;
+
       try {
         const creditCards = await firstValueFrom(apiCallsService.getCreditCards());
         const purchases = await firstValueFrom(apiCallsService.getPurchases());

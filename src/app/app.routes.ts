@@ -3,8 +3,8 @@ import { Injectable, PLATFORM_ID, inject } from "@angular/core";
 import { type CanActivateChild, Router, type Routes } from "@angular/router";
 
 import { HomeComponent } from "./home";
-import { DashboardLayoutComponent, MainComponent } from "./layouts";
-import { AuthCacheService } from "./services";
+import { MainComponent } from "./layouts/Main.component";
+import { AuthCacheService } from "./services/auth-cache.service";
 
 @Injectable({
   providedIn: "root",
@@ -38,7 +38,10 @@ export const routes: Routes = [
   },
   {
     path: "",
-    component: DashboardLayoutComponent,
+    loadComponent: () =>
+      import("./layouts/Dashboard.component").then(
+        (component) => component.DashboardLayoutComponent,
+      ),
     canActivateChild: [DashboardGuard],
     children: [
       {

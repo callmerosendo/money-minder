@@ -1,6 +1,7 @@
 import { inject, InjectionToken } from "@angular/core";
 import type { Saving } from "@app/models";
 import { ApiCallsService } from "@app/services";
+import { isBrowserPlatform } from "@app/utils";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
 import { withEntities } from "@ngrx/signals/entities";
 import { firstValueFrom } from "rxjs";
@@ -47,6 +48,8 @@ export const SavingsStore = signalStore(
   })),
   withHooks({
     async onInit(store, apiCallsService = inject(ApiCallsService)) {
+      if (!isBrowserPlatform()) return;
+
       try {
         const savings = await firstValueFrom(apiCallsService.getSavings());
         patchState(store, { savings });

@@ -2,7 +2,7 @@ import { Component, type OnInit, inject } from "@angular/core";
 import { Title } from "@angular/platform-browser";
 
 import { BtnLoginComponent } from "@app/btn-login";
-import { AuthCacheService } from "@app/services";
+import { AuthCacheService } from "@app/services/auth-cache.service";
 
 @Component({
   imports: [BtnLoginComponent],

@@ -1,6 +1,7 @@
 import { InjectionToken, inject } from "@angular/core";
 import type { DebitCard } from "@app/models";
 import { ApiCallsService } from "@app/services";
+import { isBrowserPlatform } from "@app/utils";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
 import { firstValueFrom } from "rxjs";
 
@@ -49,6 +50,8 @@ export const DebitCardsStore = signalStore(
   })),
   withHooks({
     async onInit(store, apiCallsService = inject(ApiCallsService)) {
+      if (!isBrowserPlatform()) return;
+
       try {
         const result = await firstValueFrom(apiCallsService.getDebitCards(undefined, 1, 100));
         patchState(store, { debitCards: result.items });

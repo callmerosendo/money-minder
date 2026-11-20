@@ -1,6 +1,7 @@
 import { InjectionToken, inject } from "@angular/core";
 import type { LegacyCashFlowItem } from "@app/models";
 import { ApiCallsService } from "@app/services";
+import { isBrowserPlatform } from "@app/utils";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
 import { firstValueFrom } from "rxjs";
 
@@ -31,6 +32,8 @@ export const CashFlowStore = signalStore(
   })),
   withHooks({
     async onInit(store, apiCallsService = inject(ApiCallsService)) {
+      if (!isBrowserPlatform()) return;
+
       try {
         const cashFlow = await firstValueFrom(apiCallsService.getCashFlow());
         patchState(store, { cashFlow });

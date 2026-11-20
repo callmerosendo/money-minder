@@ -1,6 +1,7 @@
 import { InjectionToken, inject } from "@angular/core";
 import type { SpecialsFinancialSummaryYearly } from "@app/models";
 import { ApiCallsService } from "@app/services";
+import { isBrowserPlatform } from "@app/utils";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
 import { firstValueFrom } from "rxjs";
 
@@ -38,6 +39,8 @@ export const FinancialSummaryStore = signalStore(
   })),
   withHooks({
     async onInit(store, apiCallsService = inject(ApiCallsService)) {
+      if (!isBrowserPlatform()) return;
+
       try {
         const financialSummary = await firstValueFrom(apiCallsService.getFinancialSummary());
         patchState(store, { financialSummary });

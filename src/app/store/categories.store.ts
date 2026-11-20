@@ -1,7 +1,7 @@
 import { InjectionToken, inject } from "@angular/core";
 import type { SpecialsCategoryItem } from "@app/models";
 import { ApiCallsService } from "@app/services";
-import { addMoney } from "@app/utils";
+import { addMoney, isBrowserPlatform } from "@app/utils";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
 import { firstValueFrom } from "rxjs";
 
@@ -51,6 +51,8 @@ export const CategoriesStore = signalStore(
   })),
   withHooks({
     async onInit(store, apiCallsService = inject(ApiCallsService)) {
+      if (!isBrowserPlatform()) return;
+
       try {
         const categories = await firstValueFrom(apiCallsService.getMainCategories());
         patchState(store, { categories });

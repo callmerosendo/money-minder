@@ -1,6 +1,7 @@
 import { InjectionToken, inject } from "@angular/core";
 import type { Transfer } from "@app/models";
 import { ApiCallsService } from "@app/services";
+import { isBrowserPlatform } from "@app/utils";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
 import { firstValueFrom } from "rxjs";
 
@@ -52,6 +53,8 @@ export const TransfersStore = signalStore(
   })),
   withHooks({
     async onInit(store, apiCallsService = inject(ApiCallsService)) {
+      if (!isBrowserPlatform()) return;
+
       try {
         const result = await firstValueFrom(apiCallsService.getTransfers(1, PAGE_SIZE));
 
