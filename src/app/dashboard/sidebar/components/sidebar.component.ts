@@ -3,7 +3,7 @@ import { Component, inject } from "@angular/core";
 import { Router, RouterLink, RouterLinkActive } from "@angular/router";
 
 import { BtnLoginComponent } from "@app/btn-login";
-import { AuthCacheService } from "@app/services";
+import { AuthCacheService } from "@app/services/auth-cache.service";
 
 @Component({
   selector: "app-sidebar",

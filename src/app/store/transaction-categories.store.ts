@@ -7,6 +7,7 @@ import type {
   UpdateCategoryPayload,
 } from "@app/models";
 import { ApiCallsService, FormSubmitService } from "@app/services";
+import { isBrowserPlatform } from "@app/utils";
 import { extractApiErrorMessage } from "@app/utils";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
 import { firstValueFrom } from "rxjs";
@@ -220,6 +221,8 @@ export const TransactionCategoriesStore = signalStore(
   ),
   withHooks({
     async onInit(store, apiCallsService = inject(ApiCallsService)) {
+      if (!isBrowserPlatform()) return;
+
       try {
         const categories = await firstValueFrom(apiCallsService.getCategories());
         patchState(store, { categories: sortCategories(categories), isLoading: false });

@@ -1,6 +1,7 @@
 import { InjectionToken, inject } from "@angular/core";
 import type { CreateLoanPaymentPayload, LoanListItem, UpdateLoanPaymentPayload } from "@app/models";
 import { ApiCallsService } from "@app/services";
+import { isBrowserPlatform } from "@app/utils";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
 import { firstValueFrom } from "rxjs";
 import { addNewPayment, calculatePaymentDifference, updateSpecificPayment } from "./loans.utils";
@@ -78,6 +79,8 @@ export const LoansStore = signalStore(
   })),
   withHooks({
     async onInit(store, apiCallsService = inject(ApiCallsService)) {
+      if (!isBrowserPlatform()) return;
+
       try {
         const loans = await firstValueFrom(apiCallsService.getLoans());
         patchState(store, { loans });

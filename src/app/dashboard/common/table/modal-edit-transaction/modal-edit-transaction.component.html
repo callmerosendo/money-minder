@@ -12,7 +12,7 @@
       </p>
       <h2 id="edit-transaction-title" class="text-xl">Editar transacción</h2>
       <p id="edit-transaction-desc" class="mt-1 text-sm text-ink-2">
-        Los cambios recalculan el saldo de la cuenta asociada.
+        Si cambias la cuenta, se recalculan ambos saldos.
       </p>
     </div>
 
@@ -41,6 +41,23 @@
             class="w-full"
           />
         </div>
+      </div>
+
+      <div>
+        <label for="edit-transaction-account" class="label mb-1 block">Cuenta</label>
+        <select id="edit-transaction-account" formControlName="accountId" required class="w-full">
+          <option value="" disabled>Selecciona una cuenta activa</option>
+          @for (account of accounts(); track account.id) {
+            <option [value]="account.id">
+              {{ account.name }} · {{ accountTypeLabels[account.type] }}
+            </option>
+          }
+        </select>
+        @if (currentAccountArchived()) {
+          <p class="mt-1 text-sm text-danger">
+            La cuenta original está archivada. Elige una cuenta activa para guardar los cambios.
+          </p>
+        }
       </div>
 
       <div>

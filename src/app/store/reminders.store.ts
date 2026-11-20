@@ -1,6 +1,7 @@
 import { inject, InjectionToken } from "@angular/core";
 import type { Reminder } from "@app/models";
 import { ApiCallsService } from "@app/services";
+import { isBrowserPlatform } from "@app/utils";
 import { patchState, signalStore, withHooks, withMethods, withState } from "@ngrx/signals";
 import { withEntities } from "@ngrx/signals/entities";
 import { firstValueFrom } from "rxjs";
@@ -47,6 +48,8 @@ export const RemindersStore = signalStore(
   })),
   withHooks({
     async onInit(store, apiCallsService = inject(ApiCallsService)) {
+      if (!isBrowserPlatform()) return;
+
       try {
         const reminders = await firstValueFrom(apiCallsService.getReminders());
         patchState(store, { reminders });
